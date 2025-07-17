@@ -8,7 +8,7 @@ from scraper import BusinessScraper
 from database import get_db
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=True, origins=['https://hyperformr-scraper.vercel.app'])
 
 @app.before_request
 def handle_preflight():
