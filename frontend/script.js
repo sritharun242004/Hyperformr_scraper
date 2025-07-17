@@ -1,6 +1,5 @@
 // Configuration
-const API_BASE = 'http://localhost:5001/api';
-
+const API_BASE = 'https://hyperformrscraper-production.up.railway.app/api';
 // Global state
 let currentPage = 1;
 let currentSearch = '';
