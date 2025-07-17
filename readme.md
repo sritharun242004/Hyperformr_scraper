@@ -44,11 +44,9 @@
 
 ## Screenshots
 
-### Dashboard Overview
-![Dashboard Screenshot]("Hyperformr_scraper/output/sc.png)
+![Dashboard Screenshot](Hyperformr_scraper/output/sc.png)
 
-### Scraped Company Profile
-![Company Detail Screenshot]("Hyperformr_scraper/output/sc2.png)
+![Company Detail Screenshot](Hyperformr_scraper/output/sc2.png)
 
 ---
 
