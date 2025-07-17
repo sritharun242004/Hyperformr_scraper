@@ -1,9 +1,5 @@
-const CONFIG = {
-    API_BASE: window.location.hostname === 'localhost' ? 'http://localhost:5001/api' : '/api',
-    RETRY_ATTEMPTS: 3,
-    RETRY_DELAY: 1000,
-    REQUEST_TIMEOUT: 30000
-};
+// Configuration
+const API_BASE = 'http://localhost:5001/api';
 
 // Global state
 let currentPage = 1;
@@ -12,7 +8,6 @@ let currentSort = 'company_name';
 let currentFilters = {};
 let isLoading = false;
 let filterOptions = {};
-let serverConnected = false;
 
 // DOM Elements
 const elements = {
@@ -36,7 +31,8 @@ const elements = {
     visitWebsiteBtn: document.getElementById('visitWebsiteBtn'),
     totalBusinesses: document.getElementById('totalBusinesses'),
     filterPanel: null,
-    dashboardStats: null
+    dashboardStats: null,
+    analysisProgress: null
 };
 
 // Initialize the application
@@ -45,202 +41,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     createUI();
     bindEventListeners();
-    
-    //  startup sequence
-    initializeApp();
+    loadBusinesses();
+    loadStats();
+    loadFilterOptions();
+    checkAPIHealth();
 });
-
-async function initializeApp() {
-    console.log('🔍 Initializing application...');
-    
-    // Check API health first
-    const healthCheck = await checkAPIHealth();
-    
-    if (healthCheck.success) {
-        console.log('✅ API connection successful');
-        serverConnected = true;
-        
-        // Load data if server is connected
-        try {
-            await Promise.all([
-                loadBusinesses(),
-                loadStats(),
-                loadFilterOptions()
-            ]);
-        } catch (error) {
-            console.error('⚠️  Failed to load initial data:', error);
-        }
-    } else {
-        console.error('❌ API connection failed:', healthCheck.error);
-        serverConnected = false;
-        showServerConnectionError();
-    }
-}
-
-function showServerConnectionError() {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'server-error-banner';
-    errorDiv.innerHTML = `
-        <div class="error-banner">
-            <div class="error-content">
-                <i class="fas fa-exclamation-triangle"></i>
-                <div>
-                    <h3>Backend Server Not Connected</h3>
-                    <p>Please start the Flask server to use the application</p>
-                </div>
-                <button onclick="retryConnection()" class="retry-btn">
-                    <i class="fas fa-refresh"></i>
-                    Retry Connection
-                </button>
-            </div>
-        </div>
-    `;
-    
-    errorDiv.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 9999;
-        background: #f44336;
-        color: white;
-        padding: 15px;
-        text-align: center;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    `;
-    
-    document.body.insertBefore(errorDiv, document.body.firstChild);
-    
-    // Disable analyze button
-    elements.analyzeBtn.disabled = true;
-    elements.analyzeBtn.textContent = 'Server Not Connected';
-}
-
-async function retryConnection() {
-    console.log('🔄 Retrying connection...');
-    
-    const errorBanner = document.querySelector('.server-error-banner');
-    if (errorBanner) {
-        errorBanner.remove();
-    }
-    
-    // Re-enable analyze button
-    elements.analyzeBtn.disabled = false;
-    elements.analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Analyze Business';
-    
-    await initializeApp();
-}
-
-// Enhanced API call function with retry logic
-async function apiCall(endpoint, options = {}) {
-    const url = `${CONFIG.API_BASE}${endpoint}`;
-    console.log(`🌐 Making request to: ${url}`);
-    
-    for (let attempt = 1; attempt <= CONFIG.RETRY_ATTEMPTS; attempt++) {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT);
-            
-            const response = await fetch(url, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    ...options.headers
-                },
-                mode: 'cors',
-                signal: controller.signal,
-                ...options
-            });
-            
-            clearTimeout(timeoutId);
-            console.log(`📡 Response status: ${response.status} (Attempt ${attempt})`);
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`❌ API Error: ${response.status} - ${errorText}`);
-                throw new Error(`HTTP ${response.status}: ${errorText || 'Unknown error'}`);
-            }
-
-            const data = await response.json();
-            console.log(`📦 Response data:`, data);
-            
-            return data;
-            
-        } catch (error) {
-            console.error(`❌ API Error (Attempt ${attempt}):`, error);
-            
-            if (attempt === CONFIG.RETRY_ATTEMPTS) {
-                // Provide specific error messages based on error type
-                if (error.name === 'AbortError') {
-                    throw new Error('Request timed out. The server might be overloaded.');
-                } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-                    throw new Error('Cannot connect to server. Make sure the backend is running on localhost:5001');
-                } else if (error.name === 'TypeError' && error.message.includes('NetworkError')) {
-                    throw new Error('Network error. Check your internet connection and backend server.');
-                } else if (error.message.includes('CORS')) {
-                    throw new Error('CORS error. Backend server configuration issue.');
-                } else {
-                    throw error;
-                }
-            }
-            
-            // Wait before retry
-            await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY * attempt));
-        }
-    }
-}
-
-//  API Health Check
-async function checkAPIHealth() {
-    try {
-        console.log('🔍 Checking API health...');
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-        
-        const response = await fetch(`${CONFIG.API_BASE}/health`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-            },
-            mode: 'cors',
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log('✅ API is running');
-            console.log('📊 Health data:', data);
-            
-            return { success: true, data };
-        } else {
-            throw new Error(`HTTP ${response.status}`);
-        }
-    } catch (error) {
-        console.error('❌ API Health Check Failed:', error);
-        
-        let errorMessage = 'Unknown connection error';
-        
-        if (error.name === 'AbortError') {
-            errorMessage = 'Connection timeout - server not responding';
-        } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-            errorMessage = 'Cannot connect to server. Please start the backend server with: python start_server.py';
-        } else if (error.message.includes('NetworkError')) {
-            errorMessage = 'Network error - check your connection';
-        } else if (error.message.includes('CORS')) {
-            errorMessage = 'CORS error - backend configuration issue';
-        }
-        
-        return { success: false, error: errorMessage };
-    }
-}
 
 // Create UI elements
 function createUI() {
     createFilterPanel();
     createDashboardStats();
+    createAnalysisProgress();
     enhanceSearchInput();
     enhanceSortSelect();
 }
@@ -307,6 +118,27 @@ function createDashboardStats() {
     
     heroContainer.appendChild(statsPanel);
     elements.dashboardStats = statsPanel;
+}
+
+function createAnalysisProgress() {
+    const loadingState = elements.loadingState;
+    
+    const progressBar = document.createElement('div');
+    progressBar.className = 'analysis-progress';
+    progressBar.innerHTML = `
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        <div class="progress-steps">
+            <div class="progress-step active" id="step1">Fetching Website</div>
+            <div class="progress-step" id="step2">Extracting Data</div>
+            <div class="progress-step" id="step3">Analyzing Business</div>
+            <div class="progress-step" id="step4">Generating Insights</div>
+        </div>
+    `;
+    
+    loadingState.appendChild(progressBar);
+    elements.analysisProgress = progressBar;
 }
 
 function enhanceSearchInput() {
@@ -401,11 +233,6 @@ async function analyzeURL() {
         showError('Please enter a URL');
         return;
     }
-    
-    if (!serverConnected) {
-        showError('Server not connected. Please start the backend server first.');
-        return;
-    }
 
     if (isLoading) {
         return;
@@ -413,14 +240,25 @@ async function analyzeURL() {
 
     try {
         isLoading = true;
-        showLoading('Analyzing business... This may take 10-30 seconds');
+        showLoadingWithProgress('Starting analysis...');
         hideError();
         hideSuccess();
+
+        updateProgressStep(1, 'Fetching Website');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        updateProgressStep(2, 'Extracting Data');
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        updateProgressStep(3, 'Analyzing Business');
         
         const response = await apiCall('/analyze', {
             method: 'POST',
             body: JSON.stringify({ url })
         });
+
+        updateProgressStep(4, 'Generating Insights');
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         if (response.success) {
             const dataPoints = response.data.data_points_extracted || 0;
@@ -450,16 +288,12 @@ async function analyzeURL() {
         showError(`Analysis failed: ${error.message}`);
     } finally {
         isLoading = false;
-        hideLoading();
+        hideLoadingWithProgress();
     }
 }
 
 // Business Loading
 async function loadBusinesses() {
-    if (!serverConnected) {
-        return;
-    }
-    
     try {
         const params = new URLSearchParams({
             search: currentSearch,
@@ -489,7 +323,7 @@ async function loadBusinesses() {
         }
     } catch (error) {
         console.error('Failed to load businesses:', error);
-        showError('Failed to load businesses. ' + error.message);
+        showError('Failed to load businesses. Make sure the backend is running.');
     }
 }
 
@@ -516,6 +350,7 @@ function createBusinessCard(business) {
     const description = business.description || 'No description available';
     const businessModel = business.business_model || 'Unknown';
     const competitiveAdvantages = business.competitive_advantages || 'Not specified';
+    const dataCompleteness = business.data_completeness || 0;
 
     card.innerHTML = `
         <div class="card-header">
@@ -559,9 +394,15 @@ function createBusinessCard(business) {
         </div>
         
         <div class="card-insights">
+            <div class="data-completeness">
+                <div class="completeness-bar">
+                    <div class="completeness-fill" style="width: ${dataCompleteness}%"></div>
+                </div>
+                <span class="completeness-text">${dataCompleteness}% Complete</span>
+            </div>
             <div class="competitive-advantage">
                 <i class="fas fa-trophy"></i>
-                <span>${escapeHtml(competitiveAdvantages.substring(0, 100))}${competitiveAdvantages.length > 100 ? '...' : ''}</span>
+                <span>${escapeHtml(competitiveAdvantages.substring(0, 50))}${competitiveAdvantages.length > 50 ? '...' : ''}</span>
             </div>
         </div>
     `;
@@ -571,11 +412,6 @@ function createBusinessCard(business) {
 
 // Business View
 async function viewBusiness(businessId) {
-    if (!serverConnected) {
-        showError('Server not connected');
-        return;
-    }
-    
     try {
         const response = await apiCall(`/business/${businessId}`);
         
@@ -688,7 +524,7 @@ function createInsightsTab(business) {
     return `
         <div class="detail-grid">
             <div class="detail-section full-width">
-                <h4><i class="fas fa-file-text"></i> Business Description</h4>
+                <h4><i class="fas fa-file-text"></i> Description</h4>
                 <p>${escapeHtml(business.description || 'No description available')}</p>
             </div>
 
@@ -697,24 +533,19 @@ function createInsightsTab(business) {
                 <p>${escapeHtml(business.summary || 'No summary available')}</p>
             </div>
 
-            <div class="detail-section full-width">
-                <h4><i class="fas fa-newspaper"></i> Recent Activities & News</h4>
-                <p>${escapeHtml(business.recent_news || 'No recent activities found')}</p>
-            </div>
-
             <div class="detail-section">
-                <h4><i class="fas fa-users"></i> Key Leadership</h4>
-                <p>${escapeHtml(business.key_executives || 'Leadership information not available')}</p>
+                <h4><i class="fas fa-users"></i> Key Executives</h4>
+                <p>${escapeHtml(business.key_executives || 'Leadership info not found')}</p>
             </div>
 
             <div class="detail-section">
                 <h4><i class="fas fa-trophy"></i> Awards & Recognition</h4>
-                <p>${escapeHtml(business.awards_recognition || 'No awards or recognition mentioned')}</p>
+                <p>${escapeHtml(business.awards_recognition || 'No awards mentioned')}</p>
             </div>
 
             <div class="detail-section full-width">
-                <h4><i class="fas fa-tags"></i> Product Categories</h4>
-                <p>${escapeHtml(business.product_categories || 'Product categories not specified')}</p>
+                <h4><i class="fas fa-newspaper"></i> Recent News</h4>
+                <p>${escapeHtml(business.recent_news || 'No recent updates found')}</p>
             </div>
         </div>
     `;
@@ -725,33 +556,22 @@ function createCompetitiveTab(business) {
         <div class="detail-grid">
             <div class="detail-section full-width">
                 <h4><i class="fas fa-star"></i> Competitive Advantages</h4>
-                <p>${escapeHtml(business.competitive_advantages || 'Competitive advantages not clearly specified')}</p>
+                <p>${escapeHtml(business.competitive_advantages || 'Not specified')}</p>
             </div>
 
             <div class="detail-section">
-                <h4><i class="fas fa-handshake"></i> Strategic Partnerships</h4>
+                <h4><i class="fas fa-handshake"></i> Partnerships</h4>
                 <p>${escapeHtml(business.partnerships || 'No partnerships mentioned')}</p>
             </div>
 
             <div class="detail-section">
-                <h4><i class="fas fa-certificate"></i> Certifications & Compliance</h4>
+                <h4><i class="fas fa-certificate"></i> Certifications</h4>
                 <p>${escapeHtml(business.certifications || 'No certifications mentioned')}</p>
-            </div>
-
-            <div class="detail-section">
-                <h4><i class="fas fa-chart-line"></i> Market Position</h4>
-                <p><strong>Market Focus:</strong> ${escapeHtml(business.market_focus || 'Unknown')}</p>
-                <p><strong>Business Maturity:</strong> ${escapeHtml(business.business_maturity || 'Unknown')}</p>
-            </div>
-
-            <div class="detail-section">
-                <h4><i class="fas fa-bullseye"></i> Target Market</h4>
-                <p>${escapeHtml(business.target_market || 'General market')}</p>
             </div>
 
             <div class="detail-section full-width">
                 <h4><i class="fas fa-comments"></i> Client Testimonials</h4>
-                <p>${escapeHtml(business.client_testimonials || 'No client testimonials available')}</p>
+                <p>${escapeHtml(business.client_testimonials || 'No testimonials found')}</p>
             </div>
         </div>
     `;
@@ -803,11 +623,6 @@ function createOperationsTab(business) {
 
 // Business Insights
 async function viewBusinessInsights(businessId) {
-    if (!serverConnected) {
-        showError('Server not connected');
-        return;
-    }
-    
     try {
         const response = await apiCall(`/business/${businessId}/insights`);
         
@@ -848,7 +663,6 @@ function createInsightsContent(insights) {
         <div class="insight-section">
             <h3>Company Overview</h3>
             <div class="insight-content">
-                <p><strong>Name:</strong> ${insights.company_overview.name}</p>
                 <p><strong>Industry:</strong> ${insights.company_overview.industry}</p>
                 <p><strong>Founded:</strong> ${insights.company_overview.founded}</p>
                 <p><strong>Size:</strong> ${insights.company_overview.size}</p>
@@ -857,7 +671,7 @@ function createInsightsContent(insights) {
         </div>
         
         <div class="insight-section">
-            <h3>Business Intelligence</h3>
+            <h3>Business Analysis</h3>
             <div class="insight-content">
                 <p><strong>Business Model:</strong> ${insights.business_analysis.business_model}</p>
                 <p><strong>Target Market:</strong> ${insights.business_analysis.target_market}</p>
@@ -867,27 +681,17 @@ function createInsightsContent(insights) {
         </div>
         
         <div class="insight-section">
-            <h3>Competitive Analysis</h3>
+            <h3>Competitive Advantages</h3>
             <div class="insight-content">
-                <p><strong>Key Advantages:</strong> ${insights.business_analysis.competitive_advantages}</p>
+                <p>${insights.business_analysis.competitive_advantages}</p>
             </div>
         </div>
         
         <div class="insight-section">
-            <h3>Recent Activities & News</h3>
+            <h3>Recent Activity</h3>
             <div class="insight-content">
-                <p><strong>Recent Updates:</strong> ${insights.recent_activity.recent_news}</p>
-                <p><strong>Awards & Recognition:</strong> ${insights.recent_activity.awards}</p>
-                <p><strong>Client Feedback:</strong> ${insights.recent_activity.testimonials}</p>
-            </div>
-        </div>
-        
-        <div class="insight-section">
-            <h3>Contact Information</h3>
-            <div class="insight-content">
-                <p><strong>Website:</strong> <a href="${insights.contact_and_social.website}" target="_blank">${insights.contact_and_social.website}</a></p>
-                <p><strong>Contact:</strong> ${insights.contact_and_social.contact_info}</p>
-                <p><strong>Social Media:</strong> ${insights.contact_and_social.social_media}</p>
+                <p><strong>Recent News:</strong> ${insights.recent_activity.recent_news}</p>
+                <p><strong>Awards:</strong> ${insights.recent_activity.awards}</p>
             </div>
         </div>
     `;
@@ -895,10 +699,6 @@ function createInsightsContent(insights) {
 
 // Statistics Loading
 async function loadStats() {
-    if (!serverConnected) {
-        return;
-    }
-    
     try {
         const response = await apiCall('/analytics/dashboard');
         
@@ -923,10 +723,6 @@ function updateDashboardStats(dashboard) {
 
 // Filter Management
 async function loadFilterOptions() {
-    if (!serverConnected) {
-        return;
-    }
-    
     try {
         const response = await apiCall('/filters/options');
         
@@ -1000,6 +796,51 @@ function clearFilters() {
     loadBusinesses();
 }
 
+// Progress Management
+function showLoadingWithProgress(message) {
+    elements.loadingState.querySelector('span').textContent = message;
+    elements.loadingState.style.display = 'flex';
+    elements.analyzeBtn.disabled = true;
+    
+    resetProgressSteps();
+}
+
+function hideLoadingWithProgress() {
+    elements.loadingState.style.display = 'none';
+    elements.analyzeBtn.disabled = false;
+}
+
+function updateProgressStep(step, message) {
+    const steps = document.querySelectorAll('.progress-step');
+    const progressFill = document.querySelector('.progress-fill');
+    
+    progressFill.style.width = `${(step / 4) * 100}%`;
+    
+    steps.forEach((stepElement, index) => {
+        if (index < step) {
+            stepElement.classList.add('completed');
+            stepElement.classList.remove('active');
+        } else if (index === step - 1) {
+            stepElement.classList.add('active');
+            stepElement.classList.remove('completed');
+        } else {
+            stepElement.classList.remove('active', 'completed');
+        }
+    });
+    
+    elements.loadingState.querySelector('span').textContent = message;
+}
+
+function resetProgressSteps() {
+    const steps = document.querySelectorAll('.progress-step');
+    const progressFill = document.querySelector('.progress-fill');
+    
+    progressFill.style.width = '0%';
+    steps.forEach(step => {
+        step.classList.remove('active', 'completed');
+    });
+}
+
 // Modal Tab Management
 function showModalTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(tab => {
@@ -1046,6 +887,52 @@ function selectSuggestion(suggestion) {
     document.getElementById('searchSuggestions').style.display = 'none';
 }
 
+// API call function
+async function apiCall(endpoint, options = {}) {
+    try {
+        const url = `${API_BASE}${endpoint}`;
+        console.log(`🌐 Making request to: ${url}`);
+        
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            },
+            mode: 'cors',
+            ...options
+        });
+
+        console.log(`📡 Response status: ${response.status}`);
+
+        const data = await response.json();
+        console.log(`📦 Response data:`, data);
+        
+        if (!response.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        return data;
+    } catch (error) {
+        console.error('❌ API Error details:', error);
+        throw error;
+    }
+}
+
+// API Health Check
+async function checkAPIHealth() {
+    try {
+        const response = await fetch(`${API_BASE}/health`);
+        if (response.ok) {
+            const data = await response.json();
+            console.log('✅ API is running - Features available');
+            console.log('📊 Features:', data.components.features);
+        }
+    } catch (error) {
+        console.error('❌ API Health Check Failed:', error);
+        showError('Could not connect to API server. Make sure the backend is running on localhost:5001');
+    }
+}
+
 // Helper functions
 function closeModal() {
     elements.businessModal.style.display = 'none';
@@ -1062,11 +949,6 @@ function visitWebsite(url) {
 
 async function deleteBusiness(businessId, companyName) {
     if (!confirm(`Are you sure you want to delete "${companyName}"? This action cannot be undone.`)) {
-        return;
-    }
-    
-    if (!serverConnected) {
-        showError('Server not connected');
         return;
     }
 
@@ -1154,6 +1036,5 @@ window.visitWebsite = visitWebsite;
 window.deleteBusiness = deleteBusiness;
 window.showModalTab = showModalTab;
 window.selectSuggestion = selectSuggestion;
-window.retryConnection = retryConnection;
 
-console.log('✅ Business Analyzer Frontend Ready with Error Handling!');
+console.log('✅ Business Analyzer Frontend Ready!');

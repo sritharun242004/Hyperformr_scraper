@@ -18,40 +18,13 @@ class BusinessScraper:
         print("🔍 Business Scraper initialized")
     
     def scrape_business(self, url):
-        """Enhanced scraping with better error handling and timeout management"""
         try:
             print(f"🔍 Analyzing: {url}")
             
-            # Enhanced request with better timeout and error handling
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-                'Accept-Encoding': 'gzip, deflate',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1'
-            }
+            response = self.session.get(url, timeout=20)
+            response.raise_for_status()
             
-            try:
-                response = self.session.get(url, headers=headers, timeout=30, allow_redirects=True)
-                response.raise_for_status()
-            except requests.exceptions.Timeout:
-                return {"success": False, "error": "Request timeout - website took too long to respond"}
-            except requests.exceptions.ConnectionError:
-                return {"success": False, "error": "Connection error - could not reach the website"}
-            except requests.exceptions.HTTPError as e:
-                return {"success": False, "error": f"HTTP error: {e.response.status_code}"}
-            except requests.exceptions.RequestException as e:
-                return {"success": False, "error": f"Request failed: {str(e)}"}
-            
-            # Check if we got a valid response
-            if not response.content:
-                return {"success": False, "error": "Empty response from website"}
-            
-            try:
-                soup = BeautifulSoup(response.content, 'html.parser')
-            except Exception as e:
-                return {"success": False, "error": f"Failed to parse HTML: {str(e)}"}
+            soup = BeautifulSoup(response.content, 'html.parser')
             
             # Extract comprehensive business data
             business_data = {
@@ -87,45 +60,21 @@ class BusinessScraper:
                 'business_maturity': self._assess_business_maturity(soup)
             }
             
-            # Validate that we extracted some meaningful data
-            meaningful_fields = ['company_name', 'description', 'business_type', 'industry']
-            has_meaningful_data = any(
-                business_data.get(field) and business_data[field] not in ['Unknown', 'Not specified', 'No description available']
-                for field in meaningful_fields
-            )
-            
-            if not has_meaningful_data:
-                print("⚠️ Warning: Limited data extracted from website")
-            
-            # Scrape additional pages for more data (with timeout protection)
-            try:
-                additional_data = self._scrape_additional_pages(url, soup)
-                business_data.update(additional_data)
-            except Exception as e:
-                print(f"⚠️ Could not scrape additional pages: {e}")
+            # Scrape additional pages for more data
+            additional_data = self._scrape_additional_pages(url, soup)
+            business_data.update(additional_data)
             
             # Save to database
-            try:
-                db_result = self.db.insert_business(business_data)
-                
-                if db_result['success']:
-                    print(f"✅ Successfully saved: {business_data['company_name']}")
-                    return {"success": True, "data": business_data}
-                else:
-                    print(f"⚠️ Database save failed: {db_result['error']}")
-                    # Still return success since we extracted the data
-                    return {"success": True, "data": business_data}
-                    
-            except Exception as db_error:
-                print(f"⚠️ Database error: {db_error}")
-                # Still return success since we extracted the data
+            db_result = self.db.insert_business(business_data)
+            
+            if db_result['success']:
                 return {"success": True, "data": business_data}
+            else:
+                return {"success": False, "error": f"Database error: {db_result['error']}"}
             
         except Exception as e:
             print(f"❌ Scraping error: {e}")
-            import traceback
-            traceback.print_exc()
-            return {"success": False, "error": f"Analysis failed: {str(e)}"}
+            return {"success": False, "error": str(e)}
     
     def _extract_company_name(self, soup, url):
         # JSON-LD structured data
@@ -289,57 +238,30 @@ class BusinessScraper:
         return 'Unknown'
     
     def _extract_competitive_advantages(self, soup):
-        """Enhanced competitive advantage extraction"""
         content = soup.get_text().lower()
+        
         advantages = []
-        
-        # Look for advantage sections
-        advantage_sections = soup.find_all(['div', 'section'], class_=re.compile(r'advantage|benefit|why.*us|unique|differentiator|strength', re.I))
-        
-        for section in advantage_sections:
-            # Extract list items or short paragraphs
-            items = section.find_all(['li', 'p', 'h3', 'h4'])
-            for item in items[:3]:
-                text = item.get_text().strip()
-                if 10 < len(text) < 200:
-                    advantages.append(text)
-        
-        # Look for specific advantage patterns
         advantage_patterns = [
-            r'(?:why choose us|what makes us different|our advantages|key benefits)[:\s]*(.*?)(?:\.|$)',
-            r'(?:unique|proprietary|exclusive|patented|award-winning|industry-leading|innovative|cutting-edge)',
-            r'(?:trusted by|used by|chosen by).*?(?:companies|customers|clients)',
-            r'(?:fastest|largest|leading|top|best|premier|award-winning|certified)'
+            r'(?:why choose us|advantages|benefits|what makes us|unique|differentiators)[:\s]*(.*?)(?:\.|$)',
+            r'(?:our strengths|competitive edge|value proposition)[:\s]*(.*?)(?:\.|$)',
+            r'(?:leading|industry-leading|award-winning|certified|proven)'
         ]
         
         for pattern in advantage_patterns:
             matches = re.findall(pattern, content, re.IGNORECASE)
             for match in matches:
-                if isinstance(match, str) and 5 < len(match) < 150:
+                if isinstance(match, str) and 10 < len(match) < 200:
                     advantages.append(match.strip())
         
-        # Look for specific competitive keywords
-        competitive_keywords = [
-            'industry leader', 'market leader', 'award-winning', 'patented technology',
-            'proprietary', 'exclusive', 'cutting-edge', 'innovative', 'trusted by',
-            'fastest', 'largest', 'leading provider', 'top-rated', 'certified',
-            'proven track record', 'years of experience', 'expert team'
+        advantage_keywords = [
+            'award-winning', 'industry-leading', 'certified', 'proven track record',
+            'innovative', 'cutting-edge', 'proprietary', 'patent', 'exclusive'
         ]
         
-        found_keywords = []
-        for keyword in competitive_keywords:
-            if keyword in content:
-                found_keywords.append(keyword)
+        found_advantages = [adv for adv in advantage_keywords if adv in content]
+        advantages.extend(found_advantages)
         
-        if found_keywords:
-            advantages.extend(found_keywords[:3])
-        
-        # Clean and format advantages
-        if advantages:
-            unique_advantages = list(set(advantages))[:3]
-            return ', '.join(unique_advantages)
-        
-        return 'Competitive advantages not clearly specified'
+        return ', '.join(advantages[:3]) if advantages else 'Not specified'
     
     def _extract_key_people(self, soup):
         people = []
@@ -361,123 +283,35 @@ class BusinessScraper:
         return ', '.join(people[:3]) if people else 'Leadership info not found'
     
     def _extract_awards(self, soup):
-        """Enhanced awards and recognition extraction"""
         content = soup.get_text().lower()
-        awards = []
         
-        # Look for award-specific sections
-        award_sections = soup.find_all(['div', 'section'], class_=re.compile(r'award|recognition|achievement|accolade|honor|certificate', re.I))
-        
-        for section in award_sections:
-            # Extract award items
-            items = section.find_all(['li', 'p', 'h3', 'h4', 'span'])
-            for item in items[:5]:
-                text = item.get_text().strip()
-                if 10 < len(text) < 150:
-                    awards.append(text)
-        
-        # Comprehensive award patterns
         award_patterns = [
-            r'(?:winner|recipient|awarded|received|honored|recognized|certified|accredited).*?(?:award|prize|recognition|honor|certificate|certification)',
-            r'(?:forbes|inc\.|gartner|techcrunch|fast company|fortune|business insider|wsj|nyt).*?(?:award|list|recognition|ranking)',
-            r'(?:industry award|excellence award|innovation award|best|top|leading|premier|gold|silver|bronze).*?(?:award|recognition)',
-            r'(?:iso|soc|gdpr|hipaa|pci|ssl|security|privacy|compliance).*?(?:certified|compliant|approved)',
-            r'(?:patent|trademark|copyright|intellectual property|proprietary technology)'
+            r'(?:award|recognition|certified|accredited|winner|best|top)[:\s]*(.*?)(?:\.|$)',
+            r'(?:iso|soc|gdpr|hipaa|certified)',
+            r'(?:forbes|techcrunch|inc\.|award|medal|trophy)'
         ]
         
+        awards = []
         for pattern in award_patterns:
             matches = re.findall(pattern, content, re.IGNORECASE)
             for match in matches:
-                if isinstance(match, str) and 8 < len(match) < 150:
+                if isinstance(match, str) and 5 < len(match) < 100:
                     awards.append(match.strip())
         
-        # Specific award and certification keywords
-        award_keywords = [
-            'award-winning', 'industry-leading', 'certified', 'accredited',
-            'recognized', 'honored', 'winner', 'recipient', 'best-in-class',
-            'top-rated', 'premier', 'excellence', 'innovation', 'quality',
-            'ISO 9001', 'ISO 27001', 'SOC 2', 'GDPR compliant', 'HIPAA compliant',
-            'PCI DSS', 'SSL certified', 'security certified', 'privacy certified',
-            'Forbes', 'Inc. 5000', 'Gartner', 'TechCrunch', 'Fast Company'
-        ]
-        
-        found_awards = []
-        for keyword in award_keywords:
-            if keyword in content:
-                found_awards.append(keyword)
-        
-        if found_awards:
-            awards.extend(found_awards[:3])
-        
-        # Clean and format awards
-        if awards:
-            unique_awards = []
-            for award in awards:
-                if award not in unique_awards and len(award) > 5:
-                    unique_awards.append(award)
-            
-            return ', '.join(unique_awards[:4])
-        
-        return 'Awards and recognition information not found'
+        return ', '.join(awards[:3]) if awards else 'No awards mentioned'
     
     def _extract_recent_updates(self, soup):
-        """Enhanced recent updates and news extraction"""
+        news_sections = soup.find_all(['div', 'section'], class_=re.compile(r'news|blog|updates|announcements', re.I))
+        
         updates = []
-        
-        # Look for news, blog, updates, announcements sections
-        news_sections = soup.find_all(['div', 'section'], class_=re.compile(r'news|blog|updates|announcement|press|latest|recent', re.I))
-        
         for section in news_sections:
-            # Extract headlines and recent content
-            headlines = section.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'a'])
-            for headline in headlines[:5]:
+            headlines = section.find_all(['h3', 'h4', 'h5', 'a'])
+            for headline in headlines[:3]:
                 text = headline.get_text().strip()
-                if 10 < len(text) < 200:
-                    # Filter for recent-sounding content
-                    if any(word in text.lower() for word in ['new', 'launch', 'announce', 'release', 'update', 'partnership', 'award', 'milestone', 'expansion']):
-                        updates.append(text)
+                if 10 < len(text) < 150:
+                    updates.append(text)
         
-        # Look for recent achievement patterns
-        recent_patterns = [
-            r'(?:recently|just|newly|latest|announced|launched|released|introduced|unveiled|achieved|won|received|partnered|expanded|opened|completed).*?(?:\.|$)',
-            r'(?:new|latest|recent).*?(?:product|service|feature|partnership|office|team|funding|award|certification)',
-            r'(?:proud to announce|excited to share|pleased to announce|thrilled to announce)',
-            r'(?:milestone|achievement|award|recognition|partnership|expansion|launch|release)'
-        ]
-        
-        content = soup.get_text()
-        for pattern in recent_patterns:
-            matches = re.findall(pattern, content, re.IGNORECASE)
-            for match in matches:
-                if isinstance(match, str) and 15 < len(match) < 200:
-                    updates.append(match.strip())
-        
-        # Look for press release or announcement keywords
-        press_keywords = [
-            'press release', 'announcement', 'news update', 'company news',
-            'partnership announcement', 'product launch', 'new feature',
-            'expansion', 'funding', 'acquisition', 'award', 'certification'
-        ]
-        
-        for keyword in press_keywords:
-            if keyword in content.lower():
-                # Find surrounding context
-                context_start = content.lower().find(keyword)
-                if context_start != -1:
-                    context = content[context_start:context_start + 200]
-                    if len(context) > 20:
-                        updates.append(f"{keyword.title()}: {context[:150]}...")
-        
-        # Clean and format updates
-        if updates:
-            unique_updates = []
-            for update in updates:
-                if update not in unique_updates and len(update) > 15:
-                    unique_updates.append(update)
-            
-            return ', '.join(unique_updates[:3])
-        
-        return 'Recent company activities and news not found'
+        return ', '.join(updates[:3]) if updates else 'No recent updates found'
     
     def _extract_product_categories(self, soup):
         content = soup.get_text().lower()

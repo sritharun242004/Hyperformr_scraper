@@ -8,15 +8,7 @@ from scraper import BusinessScraper
 from database import get_db
 
 app = Flask(__name__)
-
-# Enhanced CORS configuration
-CORS(app, resources={
-    r"/api/*": {
-        "origins": ["*"],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
-})
+CORS(app, supports_credentials=True)
 
 @app.before_request
 def handle_preflight():
@@ -26,13 +18,6 @@ def handle_preflight():
         response.headers.add('Access-Control-Allow-Headers', "*")
         response.headers.add('Access-Control-Allow-Methods', "*")
         return response
-
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    return response
 
 scraper = BusinessScraper()
 db = get_db()
@@ -81,7 +66,6 @@ def home():
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze_business():
-    """Enhanced business analysis endpoint with better error handling"""
     try:
         data = request.get_json()
         
@@ -90,39 +74,17 @@ def analyze_business():
         
         url = data['url'].strip()
         
-        # URL validation
-        if not url:
-            return jsonify({'success': False, 'error': 'URL cannot be empty'}), 400
-        
         if not url.startswith(('http://', 'https://')):
             url = 'https://' + url
-        
-        # Validate URL format
-        try:
-            from urllib.parse import urlparse
-            parsed = urlparse(url)
-            if not parsed.netloc:
-                return jsonify({'success': False, 'error': 'Invalid URL format'}), 400
-        except Exception:
-            return jsonify({'success': False, 'error': 'Invalid URL format'}), 400
         
         print(f"🔍 Starting analysis for: {url}")
         start_time = time.time()
         
-        # Enhanced scraping with timeout handling
-        try:
-            result = scraper.scrape_business(url)
-        except Exception as scrape_error:
-            print(f"❌ Scraping failed: {scrape_error}")
-            return jsonify({
-                'success': False, 
-                'error': f'Failed to analyze website: {str(scrape_error)}'
-            }), 500
+        result = scraper.scrape_business(url)
         
         analysis_time = time.time() - start_time
         
         if result['success']:
-            # Add analysis metadata
             result['data']['analysis_time'] = round(analysis_time, 2)
             result['data']['analysis_date'] = datetime.now().isoformat()
             result['data']['data_points_extracted'] = len([v for v in result['data'].values() if v and v != 'Unknown' and v != 'Not specified'])
@@ -139,10 +101,7 @@ def analyze_business():
     except Exception as e:
         print(f"❌ Analysis error: {e}")
         print(traceback.format_exc())
-        return jsonify({
-            'success': False, 
-            'error': f'Server error during analysis: {str(e)}'
-        }), 500
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/businesses', methods=['GET'])
 def get_businesses():
@@ -342,15 +301,6 @@ def get_filter_options():
     except Exception as e:
         print(f"❌ Filter options error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/test', methods=['GET'])
-def test_endpoint():
-    """Simple test endpoint to verify API is working"""
-    return jsonify({
-        'success': True,
-        'message': 'API is working correctly!',
-        'timestamp': datetime.now().isoformat()
-    })
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
