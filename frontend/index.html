@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyperformr.scraper - Business Intelligence</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                Hyperformr.scraper
+            </div>
+            <div class="nav-stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="totalBusinesses">0</span>
+                    <span class="stat-label">Businesses</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <h1><span class="highlight">Hyperformr.scraper</span></h1>
+            <p>Enter any business website URL to extract comprehensive company information and insights.</p>
+            
+            <div class="input-section">
+                <div class="input-group">
+                    <input 
+                        type="url" 
+                        id="urlInput" 
+                        placeholder="Enter business website URL (e.g., https://google.com)"
+                        class="url-input"
+                    >
+                    <button id="analyzeBtn" class="analyze-btn">
+                        <i class="fas fa-search"></i>
+                        Analyze Business
+                    </button>
+                </div>
+            </div>
+
+            <!-- Status Messages -->
+            <div id="loadingState" class="status-message loading">
+                <div class="loading-spinner"></div>
+                <span>Analyzing business... This may take 10-30 seconds</span>
+            </div>
+
+            <div id="errorState" class="status-message error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="errorMessage">Something went wrong. Please try again.</span>
+            </div>
+
+            <div id="successState" class="status-message success">
+                <i class="fas fa-check-circle"></i>
+                <span id="successMessage">Business analyzed successfully!</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Controls -->
+        <div class="controls">
+            <div class="search-group">
+                <i class="fas fa-search search-icon"></i>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search businesses..."
+                    class="search-input"
+                >
+            </div>
+            <select id="sortSelect" class="sort-select">
+                <option value="company_name">Sort by Name</option>
+                <option value="business_type">Sort by Type</option>
+                <option value="industry">Sort by Industry</option>
+                <option value="founded_year">Sort by Founded Year</option>
+                <option value="last_updated">Sort by Date Added</option>
+            </select>
+        </div>
+
+        <!-- Section Header -->
+        <div class="section-header">
+            <h2 class="section-title">Business Intelligence</h2>
+            <span id="businessCount" class="business-count">0 businesses found</span>
+        </div>
+
+        <!-- Business Grid -->
+        <div id="businessGrid" class="business-grid">
+            <!-- Business cards will be inserted here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state">
+            <i class="fas fa-building"></i>
+            <h3>No businesses analyzed yet</h3>
+            <p>Start by entering a business URL above to extract comprehensive insights</p>
+        </div>
+    </main>
+
+    <!-- Business Detail Modal -->
+    <div id="businessModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" class="modal-title">Business Details</h2>
+                <button id="closeModal" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent">
+                    <!-- Business details will be inserted here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="deleteBusinessBtn" class="btn btn-danger">
+                    <i class="fas fa-trash"></i>
+                    Delete
+                </button>
+                <button id="visitWebsiteBtn" class="btn btn-primary">
+                    <i class="fas fa-external-link-alt"></i>
+                    Visit Website
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
