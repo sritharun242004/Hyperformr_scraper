@@ -81,19 +81,11 @@ class BusinessDatabase:
         try:
             offset = (page - 1) * per_page
             
+            # Start with base query
             query = self.supabase.table('businesses').select('*')
-            
-            if search:
-                search_conditions = [
-                    f'company_name.ilike.%{search}%',
-                    f'business_type.ilike.%{search}%',
-                    f'industry.ilike.%{search}%',
-                    f'location.ilike.%{search}%',
-                    f'description.ilike.%{search}%'
 
-                ]
-                query = query.or_(','.join(search_conditions))
             
+            # Apply other filters
             if filters:
                 if filters.get('business_type'):
                     query = query.eq('business_type', filters['business_type'])
@@ -107,23 +99,17 @@ class BusinessDatabase:
                     start_year, end_year = filters['founded_year_range']
                     query = query.gte('founded_year', start_year).lte('founded_year', end_year)
             
+            # Apply sorting
             if sort_by == 'relevance' and search:
+                # For relevance, we'll keep default order
                 pass
             else:
                 query = query.order(sort_by)
             
+            # Build count query for pagination
             count_query = self.supabase.table('businesses').select('id', count='exact')
-            if search:
-                count_query = count_query.or_(','.join(search_conditions))
-                if search:
-                   search_conditions = [
-                   f'company_name.ilike.%{search}%',
-                   f'business_type.ilike.%{search}%',
-                   f'industry.ilike.%{search}%',
-                   f'location.ilike.%{search}%',
-                   f'description.ilike.%{search}%'
-                   ]
-                count_query = count_query.or_(','.join(search_conditions))
+
+            
             if filters:
                 if filters.get('business_type'):
                     count_query = count_query.eq('business_type', filters['business_type'])
@@ -133,10 +119,15 @@ class BusinessDatabase:
                     count_query = count_query.eq('company_size', filters['company_size'])
                 if filters.get('location'):
                     count_query = count_query.ilike('location', f"%{filters['location']}%")
+                if filters.get('founded_year_range'):
+                    start_year, end_year = filters['founded_year_range']
+                    count_query = count_query.gte('founded_year', start_year).lte('founded_year', end_year)
             
+            # Execute count query
             total_result = count_query.execute()
             total = total_result.count
             
+            # Execute main query with pagination
             result = query.range(offset, offset + per_page - 1).execute()
             total_pages = (total + per_page - 1) // per_page
             

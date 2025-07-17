@@ -11,25 +11,25 @@ let filterOptions = {};
 
 // DOM Elements
 const elements = {
-    urlInput: document.getElementById('urlInput'),
-    analyzeBtn: document.getElementById('analyzeBtn'),
-    searchInput: document.getElementById('searchInput'),
-    sortSelect: document.getElementById('sortSelect'),
-    businessGrid: document.getElementById('businessGrid'),
-    businessCount: document.getElementById('businessCount'),
-    emptyState: document.getElementById('emptyState'),
-    loadingState: document.getElementById('loadingState'),
-    errorState: document.getElementById('errorState'),
-    successState: document.getElementById('successState'),
-    errorMessage: document.getElementById('errorMessage'),
-    successMessage: document.getElementById('successMessage'),
-    businessModal: document.getElementById('businessModal'),
-    modalTitle: document.getElementById('modalTitle'),
-    modalContent: document.getElementById('modalContent'),
-    closeModal: document.getElementById('closeModal'),
-    deleteBusinessBtn: document.getElementById('deleteBusinessBtn'),
-    visitWebsiteBtn: document.getElementById('visitWebsiteBtn'),
-    totalBusinesses: document.getElementById('totalBusinesses'),
+    urlInput: null,
+    analyzeBtn: null,
+    searchInput: null,
+    sortSelect: null,
+    businessGrid: null,
+    businessCount: null,
+    emptyState: null,
+    loadingState: null,
+    errorState: null,
+    successState: null,
+    errorMessage: null,
+    successMessage: null,
+    businessModal: null,
+    modalTitle: null,
+    modalContent: null,
+    closeModal: null,
+    deleteBusinessBtn: null,
+    visitWebsiteBtn: null,
+    totalBusinesses: null,
     filterPanel: null,
     dashboardStats: null,
     analysisProgress: null
@@ -39,6 +39,8 @@ const elements = {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Business Analyzer Frontend Initialized');
     
+    initializeElements();
+    initializeUI();
     createUI();
     bindEventListeners();
     loadBusinesses();
@@ -46,6 +48,31 @@ document.addEventListener('DOMContentLoaded', function() {
     loadFilterOptions();
     checkAPIHealth();
 });
+
+// Initialize DOM elements
+function initializeElements() {
+    elements.urlInput = document.getElementById('urlInput');
+    elements.analyzeBtn = document.getElementById('analyzeBtn');
+    elements.searchInput = document.getElementById('searchInput');
+    elements.sortSelect = document.getElementById('sortSelect');
+    elements.businessGrid = document.getElementById('businessGrid');
+    elements.businessCount = document.getElementById('businessCount');
+    elements.emptyState = document.getElementById('emptyState');
+    elements.loadingState = document.getElementById('loadingState');
+    elements.errorState = document.getElementById('errorState');
+    elements.successState = document.getElementById('successState');
+    elements.errorMessage = document.getElementById('errorMessage');
+    elements.successMessage = document.getElementById('successMessage');
+    elements.businessModal = document.getElementById('businessModal');
+    elements.modalTitle = document.getElementById('modalTitle');
+    elements.modalContent = document.getElementById('modalContent');
+    elements.closeModal = document.getElementById('closeModal');
+    elements.deleteBusinessBtn = document.getElementById('deleteBusinessBtn');
+    elements.visitWebsiteBtn = document.getElementById('visitWebsiteBtn');
+    elements.totalBusinesses = document.getElementById('totalBusinesses');
+    
+    console.log('🔍 Search Input Element:', elements.searchInput);
+}
 
 // Create UI elements
 function createUI() {
@@ -58,6 +85,10 @@ function createUI() {
 
 function createFilterPanel() {
     const controlsDiv = document.querySelector('.controls');
+    if (!controlsDiv) {
+        console.error('❌ Controls div not found!');
+        return;
+    }
     
     const filterPanel = document.createElement('div');
     filterPanel.className = 'filter-panel';
@@ -94,6 +125,10 @@ function createFilterPanel() {
 
 function createDashboardStats() {
     const heroContainer = document.querySelector('.hero-container');
+    if (!heroContainer) {
+        console.error('❌ Hero container not found!');
+        return;
+    }
     
     const statsPanel = document.createElement('div');
     statsPanel.className = 'dashboard-stats';
@@ -121,7 +156,10 @@ function createDashboardStats() {
 }
 
 function createAnalysisProgress() {
-    const loadingState = elements.loadingState;
+    if (!elements.loadingState) {
+        console.error('❌ Loading state element not found!');
+        return;
+    }
     
     const progressBar = document.createElement('div');
     progressBar.className = 'analysis-progress';
@@ -137,12 +175,16 @@ function createAnalysisProgress() {
         </div>
     `;
     
-    loadingState.appendChild(progressBar);
+    elements.loadingState.appendChild(progressBar);
     elements.analysisProgress = progressBar;
 }
 
 function enhanceSearchInput() {
     const searchGroup = document.querySelector('.search-group');
+    if (!searchGroup) {
+        console.error('❌ Search group not found!');
+        return;
+    }
     
     const suggestionsDiv = document.createElement('div');
     suggestionsDiv.className = 'search-suggestions';
@@ -153,7 +195,10 @@ function enhanceSearchInput() {
 }
 
 function enhanceSortSelect() {
-    const sortSelect = elements.sortSelect;
+    if (!elements.sortSelect) {
+        console.error('❌ Sort select element not found!');
+        return;
+    }
     
     const newOptions = [
         { value: 'relevance', text: 'Sort by Relevance' },
@@ -166,52 +211,85 @@ function enhanceSortSelect() {
         const optionElement = document.createElement('option');
         optionElement.value = option.value;
         optionElement.textContent = option.text;
-        sortSelect.appendChild(optionElement);
+        elements.sortSelect.appendChild(optionElement);
     });
 }
 
 // Event Listeners
 function bindEventListeners() {
-    elements.analyzeBtn.addEventListener('click', analyzeURL);
-    elements.urlInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            analyzeURL();
-        }
-    });
+    // Analyze button event
+    if (elements.analyzeBtn) {
+        elements.analyzeBtn.addEventListener('click', analyzeURL);
+    }
+    
+    // URL input enter key event
+    if (elements.urlInput) {
+        elements.urlInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyzeURL();
+            }
+        });
+    }
 
-    elements.searchInput.addEventListener('input', debounce(function() {
-        currentSearch = this.value.trim();
-        currentPage = 1;
-        loadBusinesses();
-        showSearchSuggestions(this.value);
-    }, 300));
+    // Search input event - FIXED VERSION
+    if (elements.searchInput) {
+        elements.searchInput.addEventListener('input', debounce(function(event) {
+            try {
+                const inputValue = event.target.value || '';
+                const searchValue = inputValue.trim().toLowerCase();
+                console.log('🔍 Original input:', inputValue);
+                console.log('🔍 Searching for:', searchValue);
+                currentSearch = searchValue;
+                currentPage = 1;
+                loadBusinesses();
+                showSearchSuggestions(searchValue);
+            } catch (error) {
+                console.error('❌ Search input error:', error);
+            }
+        }, 300));
+        console.log('✅ Search event listener attached successfully');
+    } else {
+        console.error('❌ Search input element not found for event binding!');
+    }
 
-    elements.sortSelect.addEventListener('change', function() {
-        currentSort = this.value;
-        currentPage = 1;
-        loadBusinesses();
-    });
+    // Sort select event
+    if (elements.sortSelect) {
+        elements.sortSelect.addEventListener('change', function() {
+            currentSort = this.value;
+            currentPage = 1;
+            loadBusinesses();
+        });
+    }
 
     // Filter panel events
     document.addEventListener('click', function(e) {
-        if (e.target.id === 'toggleFilters') {
-            toggleFilterPanel();
-        }
-        if (e.target.id === 'applyFilters') {
-            applyFilters();
-        }
-        if (e.target.id === 'clearFilters') {
-            clearFilters();
+        try {
+            if (e.target && e.target.id === 'toggleFilters') {
+                toggleFilterPanel();
+            }
+            if (e.target && e.target.id === 'applyFilters') {
+                applyFilters();
+            }
+            if (e.target && e.target.id === 'clearFilters') {
+                clearFilters();
+            }
+        } catch (error) {
+            console.error('❌ Filter event error:', error);
         }
     });
 
     // Modal events
-    elements.closeModal.addEventListener('click', closeModal);
-    elements.businessModal.addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeModal();
-        }
-    });
+    if (elements.closeModal) {
+        elements.closeModal.addEventListener('click', closeModal);
+    }
+    
+    if (elements.businessModal) {
+        elements.businessModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    }
 
     // Keyboard shortcuts
     document.addEventListener('keydown', function(e) {
@@ -220,13 +298,20 @@ function bindEventListeners() {
         }
         if (e.ctrlKey && e.key === 'f') {
             e.preventDefault();
-            elements.searchInput.focus();
+            if (elements.searchInput) {
+                elements.searchInput.focus();
+            }
         }
     });
 }
 
 // URL Analysis
 async function analyzeURL() {
+    if (!elements.urlInput) {
+        showError('URL input not found');
+        return;
+    }
+    
     const url = elements.urlInput.value.trim();
     
     if (!url) {
@@ -296,27 +381,48 @@ async function analyzeURL() {
 async function loadBusinesses() {
     try {
         const params = new URLSearchParams({
-            search: currentSearch,
-            sort: currentSort,
             page: currentPage,
             per_page: 12,
-            ...currentFilters
+            sort: currentSort
         });
 
+        // Only add search if there's a value
+        if (currentSearch && currentSearch.trim() !== '') {
+            params.append('search', currentSearch.trim());
+        }
+
+        // Add filters
+        Object.keys(currentFilters).forEach(key => {
+            if (currentFilters[key]) {
+                params.append(key, currentFilters[key]);
+            }
+        });
+
+        console.log('🔍 Current Search Value:', currentSearch);
+        console.log('📡 API Call params:', params.toString());
+        console.log('📋 Full URL:', `${API_BASE}/businesses?${params.toString()}`);
+        
         const response = await apiCall(`/businesses?${params}`);
+        console.log('📦 Response:', response);
 
         if (response.success) {
             displayBusinesses(response.businesses);
             
             const count = response.pagination.total_items;
-            elements.businessCount.textContent = `${count} business${count !== 1 ? 'es' : ''} found`;
+            console.log('📊 Results Count:', count);
+
+            if (elements.businessCount) {
+                elements.businessCount.textContent = `${count} business${count !== 1 ? 'es' : ''} found`;
+            }
             
-            if (count === 0) {
-                elements.emptyState.style.display = 'flex';
-                elements.businessGrid.style.display = 'none';
-            } else {
-                elements.emptyState.style.display = 'none';
-                elements.businessGrid.style.display = 'grid';
+            if (elements.emptyState && elements.businessGrid) {
+                if (count === 0) {
+                    elements.emptyState.style.display = 'flex';
+                    elements.businessGrid.style.display = 'none';
+                } else {
+                    elements.emptyState.style.display = 'none';
+                    elements.businessGrid.style.display = 'grid';
+                }
             }
             
             updatePagination(response.pagination);
@@ -329,6 +435,11 @@ async function loadBusinesses() {
 
 // Business Display
 function displayBusinesses(businesses) {
+    if (!elements.businessGrid) {
+        console.error('❌ Business grid not found!');
+        return;
+    }
+    
     elements.businessGrid.innerHTML = '';
 
     businesses.forEach(business => {
@@ -349,7 +460,6 @@ function createBusinessCard(business) {
     const foundedYear = business.founded_year || 'Unknown';
     const description = business.description || 'No description available';
     const businessModel = business.business_model || 'Unknown';
-    const competitiveAdvantages = business.competitive_advantages || 'Not specified';
 
     card.innerHTML = `
         <div class="card-header">
@@ -391,7 +501,6 @@ function createBusinessCard(business) {
                 <span>Founded ${escapeHtml(foundedYear)}</span>
             </div>
         </div>
-        
     `;
 
     return card;
@@ -412,6 +521,11 @@ async function viewBusiness(businessId) {
 
 // Business Modal
 function showBusinessModal(business) {
+    if (!elements.modalTitle || !elements.modalContent || !elements.businessModal) {
+        console.error('❌ Modal elements not found!');
+        return;
+    }
+    
     elements.modalTitle.textContent = business.company_name || 'Business Details';
     
     elements.modalContent.innerHTML = `
@@ -438,8 +552,12 @@ function showBusinessModal(business) {
         </div>
     `;
 
-    elements.deleteBusinessBtn.onclick = () => deleteBusiness(business.id, business.company_name);
-    elements.visitWebsiteBtn.onclick = () => visitWebsite(business.url);
+    if (elements.deleteBusinessBtn) {
+        elements.deleteBusinessBtn.onclick = () => deleteBusiness(business.id, business.company_name);
+    }
+    if (elements.visitWebsiteBtn) {
+        elements.visitWebsiteBtn.onclick = () => visitWebsite(business.url);
+    }
 
     elements.businessModal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -628,7 +746,7 @@ function showInsightsModal(insights) {
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Business Insights</h2>
-                <button class="close-btn" onclick="this.closest('.modal').remove()">
+                <button class="close-btn" onclick="this.closest('.modal').remove(); document.body.style.overflow = 'auto';">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -700,9 +818,15 @@ async function loadStats() {
 function updateDashboardStats(dashboard) {
     const overview = dashboard.overview;
     
-    document.getElementById('totalBusinessesStat').textContent = overview.total_businesses;
-    document.getElementById('recentAdditionsStat').textContent = overview.recent_additions;
+    const totalStat = document.getElementById('totalBusinessesStat');
+    const recentStat = document.getElementById('recentAdditionsStat');
     
+    if (totalStat) {
+        totalStat.textContent = overview.total_businesses;
+    }
+    if (recentStat) {
+        recentStat.textContent = overview.recent_additions;
+    }
     if (elements.totalBusinesses) {
         elements.totalBusinesses.textContent = overview.total_businesses;
     }
@@ -732,7 +856,7 @@ function populateFilterDropdowns() {
     
     Object.entries(dropdowns).forEach(([id, options]) => {
         const select = document.getElementById(id);
-        if (select) {
+        if (select && options) {
             options.forEach(option => {
                 const optionElement = document.createElement('option');
                 optionElement.value = option;
@@ -745,20 +869,22 @@ function populateFilterDropdowns() {
 
 function toggleFilterPanel() {
     const filterOptions = document.getElementById('filterOptions');
-    if (filterOptions.style.display === 'none') {
-        filterOptions.style.display = 'block';
-    } else {
-        filterOptions.style.display = 'none';
+    if (filterOptions) {
+        if (filterOptions.style.display === 'none') {
+            filterOptions.style.display = 'block';
+        } else {
+            filterOptions.style.display = 'none';
+        }
     }
 }
 
 function applyFilters() {
     currentFilters = {};
     
-    const businessType = document.getElementById('businessTypeFilter').value;
-    const industry = document.getElementById('industryFilter').value;
-    const companySize = document.getElementById('companySizeFilter').value;
-    const location = document.getElementById('locationFilter').value;
+    const businessType = document.getElementById('businessTypeFilter')?.value;
+    const industry = document.getElementById('industryFilter')?.value;
+    const companySize = document.getElementById('companySizeFilter')?.value;
+    const location = document.getElementById('locationFilter')?.value;
     
     if (businessType) currentFilters.business_type = businessType;
     if (industry) currentFilters.industry = industry;
@@ -768,16 +894,24 @@ function applyFilters() {
     currentPage = 1;
     loadBusinesses();
     
-    document.getElementById('filterOptions').style.display = 'none';
+    const filterOptions = document.getElementById('filterOptions');
+    if (filterOptions) {
+        filterOptions.style.display = 'none';
+    }
 }
 
 function clearFilters() {
     currentFilters = {};
     
-    document.getElementById('businessTypeFilter').value = '';
-    document.getElementById('industryFilter').value = '';
-    document.getElementById('companySizeFilter').value = '';
-    document.getElementById('locationFilter').value = '';
+    const businessTypeFilter = document.getElementById('businessTypeFilter');
+    const industryFilter = document.getElementById('industryFilter');
+    const companySizeFilter = document.getElementById('companySizeFilter');
+    const locationFilter = document.getElementById('locationFilter');
+    
+    if (businessTypeFilter) businessTypeFilter.value = '';
+    if (industryFilter) industryFilter.value = '';
+    if (companySizeFilter) companySizeFilter.value = '';
+    if (locationFilter) locationFilter.value = '';
     
     currentPage = 1;
     loadBusinesses();
@@ -785,23 +919,36 @@ function clearFilters() {
 
 // Progress Management
 function showLoadingWithProgress(message) {
-    elements.loadingState.querySelector('span').textContent = message;
-    elements.loadingState.style.display = 'flex';
-    elements.analyzeBtn.disabled = true;
+    if (elements.loadingState) {
+        const spanElement = elements.loadingState.querySelector('span');
+        if (spanElement) {
+            spanElement.textContent = message;
+        }
+        elements.loadingState.style.display = 'flex';
+    }
+    if (elements.analyzeBtn) {
+        elements.analyzeBtn.disabled = true;
+    }
     
     resetProgressSteps();
 }
 
 function hideLoadingWithProgress() {
-    elements.loadingState.style.display = 'none';
-    elements.analyzeBtn.disabled = false;
+    if (elements.loadingState) {
+        elements.loadingState.style.display = 'none';
+    }
+    if (elements.analyzeBtn) {
+        elements.analyzeBtn.disabled = false;
+    }
 }
 
 function updateProgressStep(step, message) {
     const steps = document.querySelectorAll('.progress-step');
     const progressFill = document.querySelector('.progress-fill');
     
-    progressFill.style.width = `${(step / 4) * 100}%`;
+    if (progressFill) {
+        progressFill.style.width = `${(step / 4) * 100}%`;
+    }
     
     steps.forEach((stepElement, index) => {
         if (index < step) {
@@ -815,14 +962,21 @@ function updateProgressStep(step, message) {
         }
     });
     
-    elements.loadingState.querySelector('span').textContent = message;
+    if (elements.loadingState) {
+        const spanElement = elements.loadingState.querySelector('span');
+        if (spanElement) {
+            spanElement.textContent = message;
+        }
+    }
 }
 
 function resetProgressSteps() {
     const steps = document.querySelectorAll('.progress-step');
     const progressFill = document.querySelector('.progress-fill');
     
-    progressFill.style.width = '0%';
+    if (progressFill) {
+        progressFill.style.width = '0%';
+    }
     steps.forEach(step => {
         step.classList.remove('active', 'completed');
     });
@@ -838,15 +992,24 @@ function showModalTab(tabName) {
         btn.classList.remove('active');
     });
     
-    document.getElementById(tabName + '-tab').classList.add('active');
+    const tabContent = document.getElementById(tabName + '-tab');
+    const tabButton = event.target;
     
-    event.target.classList.add('active');
+    if (tabContent) {
+        tabContent.classList.add('active');
+    }
+    if (tabButton) {
+        tabButton.classList.add('active');
+    }
 }
 
 // Search Suggestions
 function showSearchSuggestions(query) {
+    const suggestionsDiv = document.getElementById('searchSuggestions');
+    if (!suggestionsDiv) return;
+    
     if (query.length < 2) {
-        document.getElementById('searchSuggestions').style.display = 'none';
+        suggestionsDiv.style.display = 'none';
         return;
     }
     
@@ -858,7 +1021,6 @@ function showSearchSuggestions(query) {
         'E-commerce platforms'
     ].filter(s => s.toLowerCase().includes(query.toLowerCase()));
     
-    const suggestionsDiv = document.getElementById('searchSuggestions');
     suggestionsDiv.innerHTML = suggestions.map(s => 
         `<div class="suggestion-item" onclick="selectSuggestion('${s}')">${s}</div>`
     ).join('');
@@ -867,11 +1029,17 @@ function showSearchSuggestions(query) {
 }
 
 function selectSuggestion(suggestion) {
-    elements.searchInput.value = suggestion;
-    currentSearch = suggestion;
-    currentPage = 1;
-    loadBusinesses();
-    document.getElementById('searchSuggestions').style.display = 'none';
+    if (elements.searchInput) {
+        elements.searchInput.value = suggestion;
+        currentSearch = suggestion;
+        currentPage = 1;
+        loadBusinesses();
+    }
+    
+    const suggestionsDiv = document.getElementById('searchSuggestions');
+    if (suggestionsDiv) {
+        suggestionsDiv.style.display = 'none';
+    }
 }
 
 // API call function
@@ -922,7 +1090,9 @@ async function checkAPIHealth() {
 
 // Helper functions
 function closeModal() {
-    elements.businessModal.style.display = 'none';
+    if (elements.businessModal) {
+        elements.businessModal.style.display = 'none';
+    }
     document.body.style.overflow = 'auto';
     
     document.querySelectorAll('.insights-modal').forEach(modal => {
@@ -961,40 +1131,59 @@ function updatePagination(pagination) {
 
 // UI Helper Functions
 function showLoading(message) {
-    elements.loadingState.querySelector('span').textContent = message;
-    elements.loadingState.style.display = 'flex';
-    elements.analyzeBtn.disabled = true;
+    if (elements.loadingState) {
+        const spanElement = elements.loadingState.querySelector('span');
+        if (spanElement) {
+            spanElement.textContent = message;
+        }
+        elements.loadingState.style.display = 'flex';
+    }
+    if (elements.analyzeBtn) {
+        elements.analyzeBtn.disabled = true;
+    }
 }
 
 function hideLoading() {
-    elements.loadingState.style.display = 'none';
-    elements.analyzeBtn.disabled = false;
+    if (elements.loadingState) {
+        elements.loadingState.style.display = 'none';
+    }
+    if (elements.analyzeBtn) {
+        elements.analyzeBtn.disabled = false;
+    }
 }
 
 function showError(message) {
-    elements.errorState.style.display = 'block';
-    elements.errorMessage.textContent = message;
-    
-    setTimeout(() => {
-        hideError();
-    }, 5000);
+    if (elements.errorState && elements.errorMessage) {
+        elements.errorState.style.display = 'block';
+        elements.errorMessage.textContent = message;
+        
+        setTimeout(() => {
+            hideError();
+        }, 5000);
+    }
 }
 
 function hideError() {
-    elements.errorState.style.display = 'none';
+    if (elements.errorState) {
+        elements.errorState.style.display = 'none';
+    }
 }
 
 function showSuccess(message) {
-    elements.successState.style.display = 'block';
-    elements.successMessage.textContent = message;
-    
-    setTimeout(() => {
-        hideSuccess();
-    }, 3000);
+    if (elements.successState && elements.successMessage) {
+        elements.successState.style.display = 'block';
+        elements.successMessage.textContent = message;
+        
+        setTimeout(() => {
+            hideSuccess();
+        }, 3000);
+    }
 }
 
 function hideSuccess() {
-    elements.successState.style.display = 'none';
+    if (elements.successState) {
+        elements.successState.style.display = 'none';
+    }
 }
 
 // Utility Functions
@@ -1011,9 +1200,26 @@ function debounce(func, wait) {
 }
 
 function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function initializeUI() {
+    // Hide all loading states on page load
+    if (elements.loadingState) elements.loadingState.style.display = 'none';
+    if (elements.errorState) elements.errorState.style.display = 'none';
+    if (elements.successState) elements.successState.style.display = 'none';
+    
+    // Reset button state
+    if (elements.analyzeBtn) elements.analyzeBtn.disabled = false;
+    
+    // Reset search
+    currentSearch = '';
+    currentPage = 1;
+    currentSort = 'company_name';
+    currentFilters = {};
 }
 
 // Global functions for onclick handlers
