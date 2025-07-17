@@ -1,4 +1,3 @@
-// Configuration - Enhanced with better error handling
 const CONFIG = {
     API_BASE: window.location.hostname === 'localhost' ? 'http://localhost:5001/api' : '/api',
     RETRY_ATTEMPTS: 3,
@@ -47,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
     createUI();
     bindEventListeners();
     
-    // Enhanced startup sequence
+    //  startup sequence
     initializeApp();
 });
 
@@ -191,7 +190,7 @@ async function apiCall(endpoint, options = {}) {
     }
 }
 
-// Enhanced API Health Check
+//  API Health Check
 async function checkAPIHealth() {
     try {
         console.log('🔍 Checking API health...');
@@ -1157,4 +1156,4 @@ window.showModalTab = showModalTab;
 window.selectSuggestion = selectSuggestion;
 window.retryConnection = retryConnection;
 
-console.log('✅ Business Analyzer Frontend Ready with Enhanced Error Handling!');
+console.log('✅ Business Analyzer Frontend Ready with Error Handling!');
