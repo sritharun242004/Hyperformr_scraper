@@ -89,10 +89,8 @@ class BusinessDatabase:
                     f'business_type.ilike.%{search}%',
                     f'industry.ilike.%{search}%',
                     f'location.ilike.%{search}%',
-                    f'description.ilike.%{search}%',
-                    f'key_services.ilike.%{search}%',
-                    f'business_model.ilike.%{search}%',
-                    f'technologies.ilike.%{search}%'
+                    f'description.ilike.%{search}%'
+
                 ]
                 query = query.or_(','.join(search_conditions))
             
@@ -116,6 +114,15 @@ class BusinessDatabase:
             
             count_query = self.supabase.table('businesses').select('id', count='exact')
             if search:
+                count_query = count_query.or_(','.join(search_conditions))
+                if search:
+                   search_conditions = [
+                   f'company_name.ilike.%{search}%',
+                   f'business_type.ilike.%{search}%',
+                   f'industry.ilike.%{search}%',
+                   f'location.ilike.%{search}%',
+                   f'description.ilike.%{search}%'
+                   ]
                 count_query = count_query.or_(','.join(search_conditions))
             if filters:
                 if filters.get('business_type'):

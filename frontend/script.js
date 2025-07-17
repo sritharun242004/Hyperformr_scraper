@@ -180,11 +180,11 @@ function bindEventListeners() {
     });
 
     elements.searchInput.addEventListener('input', debounce(function() {
-        currentSearch = this.value;
+        currentSearch = this.value.trim();
         currentPage = 1;
         loadBusinesses();
         showSearchSuggestions(this.value);
-    }, 500));
+    }, 300));
 
     elements.sortSelect.addEventListener('change', function() {
         currentSort = this.value;
@@ -350,7 +350,6 @@ function createBusinessCard(business) {
     const description = business.description || 'No description available';
     const businessModel = business.business_model || 'Unknown';
     const competitiveAdvantages = business.competitive_advantages || 'Not specified';
-    const dataCompleteness = business.data_completeness || 0;
 
     card.innerHTML = `
         <div class="card-header">
@@ -393,18 +392,6 @@ function createBusinessCard(business) {
             </div>
         </div>
         
-        <div class="card-insights">
-            <div class="data-completeness">
-                <div class="completeness-bar">
-                    <div class="completeness-fill" style="width: ${dataCompleteness}%"></div>
-                </div>
-                <span class="completeness-text">${dataCompleteness}% Complete</span>
-            </div>
-            <div class="competitive-advantage">
-                <i class="fas fa-trophy"></i>
-                <span>${escapeHtml(competitiveAdvantages.substring(0, 50))}${competitiveAdvantages.length > 50 ? '...' : ''}</span>
-            </div>
-        </div>
     `;
 
     return card;
