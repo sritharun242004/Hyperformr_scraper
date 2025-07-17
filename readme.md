@@ -1,4 +1,4 @@
-# 
+# Hyperformr Scraper
 
 **Hyperformr Scraper** is a comprehensive business intelligence tool that scrapes and analyzes any business website to extract over 20 structured data points. It enables users and admins to profile companies, understand key metrics, and compare across industries — all without using any language models.
 
@@ -44,8 +44,10 @@
 
 ## Screenshots
 
+### Dashboard Overview
 ![Dashboard Screenshot](Hyperformr_scraper/output/sc.png)
 
+### Scraped Company Profile
 ![Company Detail Screenshot](Hyperformr_scraper/output/sc2.png)
 
 ---
@@ -65,6 +67,3 @@
 3. Extracts visible content and relevant patterns using regex
 4. Stores results in the database
 5. Frontend displays structured data in a dashboard
-
----
-
