@@ -57,6 +57,3 @@
 - Scalable system design for multi-component deployments
 
 ---
-
-## 📂 Project Structure
-
