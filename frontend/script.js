@@ -431,7 +431,30 @@ async function loadBusinesses() {
         showError('Failed to load businesses. Make sure the backend is running.');
     }
 }
+function showAnalysisResult(data) {
+    const resultDiv = document.getElementById('analysisResult');
+    const contentDiv = document.getElementById('resultContent');
+    
+    contentDiv.innerHTML = `
+        <h4>${data.company_name || 'Unknown Company'}</h4>
+        <p><strong>Industry:</strong> ${data.industry || 'Unknown'}</p>
+        <p><strong>Location:</strong> ${data.location || 'Unknown'}</p>
+        <p><strong>Business Type:</strong> ${data.business_type || 'Unknown'}</p>
+        <div class="result-actions">
+            <button onclick="visitWebsite('${data.url}')" class="btn btn-primary">
+                <i class="fas fa-external-link-alt"></i> Visit Website
+            </button>
+        </div>
+    `;
+    
+    resultDiv.style.display = 'block';
+}
 
+// Update your analyzeURL function to call this after success:
+// Add this line after showSuccess():
+if (response.data) {
+    showAnalysisResult(response.data);
+}
 // Business Display
 function displayBusinesses(businesses) {
     if (!elements.businessGrid) {

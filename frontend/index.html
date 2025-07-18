@@ -6,436 +6,129 @@
     <title>Hyperformr.scraper - Business Intelligence</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="root"></div>
-
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        const API_BASE = 'https://hyperformrscraper-production.up.railway.app/api';
-
-        function App() {
-            const [url, setUrl] = useState('');
-            const [isAnalyzing, setIsAnalyzing] = useState(false);
-            const [analysisResult, setAnalysisResult] = useState(null);
-            const [businesses, setBusinesses] = useState([]);
-            const [stats, setStats] = useState({ total_businesses: 0, recent_additions: 0 });
-            const [sortBy, setSortBy] = useState('scraped_date');
-            const [currentPage, setCurrentPage] = useState(1);
-            const [error, setError] = useState('');
-            const [success, setSuccess] = useState('');
-            const [selectedBusiness, setSelectedBusiness] = useState(null);
-            const [showModal, setShowModal] = useState(false);
-            const [progress, setProgress] = useState(0);
-            const [progressStep, setProgressStep] = useState('');
-
-            useEffect(() => {
-                loadBusinesses();
-                loadStats();
-            }, [sortBy, currentPage]);
-
-            const apiCall = async (endpoint, options = {}) => {
-                try {
-                    const response = await fetch(`${API_BASE}${endpoint}`, {
-                        headers: { 'Content-Type': 'application/json', ...options.headers },
-                        mode: 'cors',
-                        ...options
-                    });
-                    
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || `HTTP ${response.status}`);
-                    }
-                    
-                    return await response.json();
-                } catch (error) {
-                    console.error('API Error:', error);
-                    throw error;
-                }
-            };
-
-            const loadBusinesses = async () => {
-                try {
-                    const params = new URLSearchParams({
-                        page: currentPage,
-                        per_page: 12,
-                        sort: sortBy
-                    });
-                    
-                    const response = await apiCall(`/businesses?${params}`);
-                    if (response.success) {
-                        setBusinesses(response.businesses);
-                    }
-                } catch (error) {
-                    console.error('Failed to load businesses:', error);
-                }
-            };
-
-            const loadStats = async () => {
-                try {
-                    const response = await apiCall('/analytics/dashboard');
-                    if (response.success) {
-                        setStats(response.dashboard.overview);
-                    }
-                } catch (error) {
-                    console.error('Failed to load stats:', error);
-                }
-            };
-
-            const analyzeURL = async () => {
-                if (!url.trim()) {
-                    setError('Please enter a URL');
-                    return;
-                }
-
-                if (isAnalyzing) return;
-
-                try {
-                    setIsAnalyzing(true);
-                    setError('');
-                    setSuccess('');
-                    setAnalysisResult(null);
-                    setProgress(0);
-
-                    // Progress simulation
-                    setProgressStep('Fetching Website');
-                    setProgress(25);
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    setProgressStep('Extracting Data');
-                    setProgress(50);
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-                    
-                    setProgressStep('Analyzing Business');
-                    setProgress(75);
-                    
-                    const response = await apiCall('/analyze', {
-                        method: 'POST',
-                        body: JSON.stringify({ url })
-                    });
-
-                    setProgressStep('Generating Insights');
-                    setProgress(100);
-                    await new Promise(resolve => setTimeout(resolve, 500));
-
-                    if (response.success) {
-                        setAnalysisResult(response.data);
-                        setSuccess(`Successfully analyzed ${response.data.company_name}! Extracted ${response.data.data_points_extracted || 0} data points`);
-                        setUrl('');
-                        loadBusinesses();
-                        loadStats();
-                    } else {
-                        setError(response.error);
-                    }
-                } catch (error) {
-                    setError(`Analysis failed: ${error.message}`);
-                } finally {
-                    setIsAnalyzing(false);
-                    setProgress(0);
-                }
-            };
-
-            const viewBusiness = async (businessId) => {
-                try {
-                    const response = await apiCall(`/business/${businessId}`);
-                    if (response.success) {
-                        setSelectedBusiness(response.business);
-                        setShowModal(true);
-                    }
-                } catch (error) {
-                    setError(`Failed to load business details: ${error.message}`);
-                }
-            };
-
-            const visitWebsite = (url) => {
-                window.open(url, '_blank', 'noopener,noreferrer');
-            };
-
-            const deleteBusiness = async (businessId, companyName) => {
-                if (!confirm(`Are you sure you want to delete "${companyName}"?`)) return;
-
-                try {
-                    const response = await apiCall(`/business/${businessId}`, { method: 'DELETE' });
-                    if (response.success) {
-                        setSuccess(`Successfully deleted ${companyName}`);
-                        loadBusinesses();
-                        loadStats();
-                        setShowModal(false);
-                    }
-                } catch (error) {
-                    setError(`Failed to delete business: ${error.message}`);
-                }
-            };
-
-            return (
-                <div className="app">
-                    {/* Header */}
-                    <header className="header">
-                        <div className="nav-container">
-                            <div className="nav-stats">
-                                <div className="stat-item">
-                                    <span className="stat-number">{stats.total_businesses}</span>
-                                    <span className="stat-label">Businesses</span>
-                                </div>
-                            </div>
-                        </div>
-                    </header>
-
-                    {/* Hero Section */}
-                    <section className="hero">
-                        <div className="hero-container">
-                            <h1><span className="highlight">Hyperformr.scraper</span></h1>
-                            <p>Enter any business website URL to extract comprehensive company information and insights.</p>
-                            
-                            {/* URL Input Section */}
-                            <div className="input-section">
-                                <div className="input-group">
-                                    <input 
-                                        type="url" 
-                                        value={url}
-                                        onChange={(e) => setUrl(e.target.value)}
-                                        placeholder="Enter business website URL (e.g., https://google.com)"
-                                        className="url-input"
-                                        onKeyPress={(e) => e.key === 'Enter' && analyzeURL()}
-                                    />
-                                    <button 
-                                        onClick={analyzeURL}
-                                        disabled={isAnalyzing}
-                                        className="analyze-btn"
-                                    >
-                                        <i className="fas fa-search"></i>
-                                        {isAnalyzing ? 'Analyzing...' : 'Analyse the URL'}
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Status Messages */}
-                            {isAnalyzing && (
-                                <div className="status-message loading">
-                                    <div className="loading-spinner"></div>
-                                    <span>{progressStep || 'Analyzing business...'}</span>
-                                    <div className="progress-bar">
-                                        <div className="progress-fill" style={{width: `${progress}%`}}></div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {error && (
-                                <div className="status-message error">
-                                    <i className="fas fa-exclamation-triangle"></i>
-                                    <span>{error}</span>
-                                </div>
-                            )}
-
-                            {success && (
-                                <div className="status-message success">
-                                    <i className="fas fa-check-circle"></i>
-                                    <span>{success}</span>
-                                </div>
-                            )}
-
-                            {/* Analysis Result - NEW: Shows below input */}
-                            {analysisResult && (
-                                <div className="analysis-result-card">
-                                    <div className="card-header">
-                                        <h3>✅ Analysis Complete</h3>
-                                        <div className="analysis-stats">
-                                            <span>📊 {analysisResult.data_points_extracted || 0} data points</span>
-                                            <span>⏱️ {analysisResult.analysis_time || 0}s</span>
-                                        </div>
-                                    </div>
-                                    <div className="result-summary">
-                                        <h4>{analysisResult.company_name || 'Unknown Company'}</h4>
-                                        <p><strong>Industry:</strong> {analysisResult.industry || 'Unknown'}</p>
-                                        <p><strong>Location:</strong> {analysisResult.location || 'Unknown'}</p>
-                                        <p><strong>Business Type:</strong> {analysisResult.business_type || 'Unknown'}</p>
-                                        <div className="result-actions">
-                                            <button 
-                                                onClick={() => visitWebsite(analysisResult.url)}
-                                                className="btn btn-primary"
-                                            >
-                                                <i className="fas fa-external-link-alt"></i> Visit Website
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Dashboard Stats */}
-                            <div className="dashboard-stats">
-                                <div className="stats-grid">
-                                    <div className="stat-card">
-                                        <div className="stat-icon">📊</div>
-                                        <div className="stat-info">
-                                            <div className="stat-number">{stats.total_businesses}</div>
-                                            <div className="stat-label">Total Businesses</div>
-                                        </div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="stat-icon">🆕</div>
-                                        <div className="stat-info">
-                                            <div className="stat-number">{stats.recent_additions}</div>
-                                            <div className="stat-label">Recent Additions</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* Main Content */}
-                    <main className="main-content">
-                        {/* Controls */}
-                        <div className="controls">
-                            <div>
-                                <select 
-                                    value={sortBy} 
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                    className="sort-select"
-                                >
-                                    <option value="scraped_date">Sort by Recent First</option>
-                                    <option value="company_name">Sort by Name</option>
-                                    <option value="business_type">Sort by Type</option>
-                                    <option value="industry">Sort by Industry</option>
-                                    <option value="founded_year">Sort by Founded Year</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Section Header */}
-                        <div className="section-header">
-                            <h2 className="section-title">Business Intelligence</h2>
-                            <span className="business-count">{businesses.length} businesses found</span>
-                        </div>
-
-                        {/* Business Grid */}
-                        <div className="business-grid">
-                            {businesses.length === 0 ? (
-                                <div className="empty-state">
-                                    <i className="fas fa-building"></i>
-                                    <h3>No businesses analyzed yet</h3>
-                                    <p>Start by entering a business URL above to extract comprehensive insights</p>
-                                </div>
-                            ) : (
-                                businesses.map(business => (
-                                    <div key={business.id} className="business-card">
-                                        <div className="card-header">
-                                            <div className="company-info">
-                                                <h3>{business.company_name || 'Unknown Company'}</h3>
-                                                <div className="business-meta">
-                                                    <span className="business-type">{business.business_type || 'Unknown'}</span>
-                                                    <span className="business-industry">{business.industry || 'Unknown'}</span>
-                                                    <span className="business-model">{business.business_model || 'Unknown'}</span>
-                                                </div>
-                                            </div>
-                                            <div className="card-actions">
-                                                <button 
-                                                    onClick={() => viewBusiness(business.id)}
-                                                    className="action-btn view-btn" 
-                                                    title="View Details"
-                                                >
-                                                    <i className="fas fa-eye"></i>
-                                                </button>
-                                                <button 
-                                                    onClick={() => visitWebsite(business.url)}
-                                                    className="action-btn visit-btn" 
-                                                    title="Visit Website"
-                                                >
-                                                    <i className="fas fa-external-link-alt"></i>
-                                                </button>
-                                                <button 
-                                                    onClick={() => deleteBusiness(business.id, business.company_name)}
-                                                    className="action-btn delete-btn" 
-                                                    title="Delete"
-                                                >
-                                                    <i className="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="card-description">
-                                            <p>{(business.description || 'No description available').substring(0, 120)}{business.description && business.description.length > 120 ? '...' : ''}</p>
-                                        </div>
-                                        
-                                        <div className="card-details">
-                                            <div className="detail-item">
-                                                <i className="fas fa-map-marker-alt"></i>
-                                                <span>{business.location || 'Unknown'}</span>
-                                            </div>
-                                            <div className="detail-item">
-                                                <i className="fas fa-calendar"></i>
-                                                <span>Founded {business.founded_year || 'Unknown'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </main>
-
-                    {/* Modal */}
-                    {showModal && selectedBusiness && (
-                        <div className="modal" onClick={() => setShowModal(false)}>
-                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                                <div className="modal-header">
-                                    <h2>{selectedBusiness.company_name || 'Business Details'}</h2>
-                                    <button onClick={() => setShowModal(false)} className="close-btn">
-                                        <i className="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <div className="modal-body">
-                                    <div className="detail-grid">
-                                        <div className="detail-section">
-                                            <h4><i className="fas fa-building"></i> Company Information</h4>
-                                            <div className="detail-row">
-                                                <strong>Name:</strong>
-                                                <span>{selectedBusiness.company_name || 'N/A'}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <strong>Type:</strong>
-                                                <span>{selectedBusiness.business_type || 'N/A'}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <strong>Industry:</strong>
-                                                <span>{selectedBusiness.industry || 'N/A'}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <strong>Location:</strong>
-                                                <span>{selectedBusiness.location || 'N/A'}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <strong>Founded:</strong>
-                                                <span>{selectedBusiness.founded_year || 'N/A'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="modal-footer">
-                                    <button 
-                                        onClick={() => deleteBusiness(selectedBusiness.id, selectedBusiness.company_name)}
-                                        className="btn btn-danger"
-                                    >
-                                        <i className="fas fa-trash"></i> Delete
-                                    </button>
-                                    <button 
-                                        onClick={() => visitWebsite(selectedBusiness.url)}
-                                        className="btn btn-primary"
-                                    >
-                                        <i className="fas fa-external-link-alt"></i> Visit Website
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="nav-stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="totalBusinesses">0</span>
+                    <span class="stat-label">Businesses</span>
                 </div>
-            );
-        }
+            </div>
+        </div>
+    </header>
 
-        ReactDOM.render(<App />, document.getElementById('root'));
-    </script>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <h1><span class="highlight">Hyperformr.scraper</span></h1>
+            <p>Enter any business website URL to extract comprehensive company information and insights.</p>
+            
+            <div class="input-section">
+                <div class="input-group">
+                    <input 
+                        type="url" 
+                        id="urlInput" 
+                        placeholder="Enter business website URL (e.g., https://google.com)"
+                        class="url-input"
+                    >
+                    <button id="analyzeBtn" class="analyze-btn">
+                        <i class="fas fa-search"></i>
+                        Analyse the URL
+                    </button>
+                </div>
+            </div>
+
+            <!-- Status Messages -->
+            <div id="loadingState" class="status-message loading">
+                <div class="loading-spinner"></div>
+                <span>Analyzing business... This may take 10-30 seconds</span>
+            </div>
+
+            <div id="errorState" class="status-message error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="errorMessage">Something went wrong. Please try again.</span>
+            </div>
+
+            <div id="successState" class="status-message success">
+                <i class="fas fa-check-circle"></i>
+                <span id="successMessage">Business analyzed successfully!</span>
+            </div>
+
+            <!-- NEW: Analysis Result Card -->
+            <div id="analysisResult" class="analysis-result-card" style="display: none;">
+                <div class="card-header">
+                    <h3>✅ Analysis Complete</h3>
+                </div>
+                <div id="resultContent" class="result-summary">
+                    <!-- Analysis results will appear here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Controls -->
+        <div class="controls">
+            <select id="sortSelect" class="sort-select">
+                <option value="scraped_date">Sort by Recent First</option>
+                <option value="company_name">Sort by Name</option>
+                <option value="business_type">Sort by Type</option>
+                <option value="industry">Sort by Industry</option>
+                <option value="founded_year">Sort by Founded Year</option>
+            </select>
+        </div>
+
+        <!-- Section Header -->
+        <div class="section-header">
+            <h2 class="section-title">Business Intelligence</h2>
+            <span id="businessCount" class="business-count">0 businesses found</span>
+        </div>
+
+        <!-- Business Grid -->
+        <div id="businessGrid" class="business-grid">
+            <!-- Business cards will be inserted here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state">
+            <i class="fas fa-building"></i>
+            <h3>No businesses analyzed yet</h3>
+            <p>Start by entering a business URL above to extract comprehensive insights</p>
+        </div>
+    </main>
+
+    <!-- Business Detail Modal -->
+    <div id="businessModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" class="modal-title">Business Details</h2>
+                <button id="closeModal" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent">
+                    <!-- Business details will be inserted here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="deleteBusinessBtn" class="btn btn-danger">
+                    <i class="fas fa-trash"></i>
+                    Delete
+                </button>
+                <button id="visitWebsiteBtn" class="btn btn-primary">
+                    <i class="fas fa-external-link-alt"></i>
+                    Visit Website
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
