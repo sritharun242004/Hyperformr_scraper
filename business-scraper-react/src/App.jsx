@@ -175,6 +175,34 @@ const App = () => {
           </div>
         </div>
       </header>
+      {/* TEMP: Modal test button */}
+      
+      {/* TEMPORARY TEST SECTION - Add this after the header */}
+<div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4">
+  <div className="text-center">
+    <h3 className="text-lg font-medium text-yellow-800 mb-2">🧪 Modal Testing</h3>
+    <button 
+      onClick={() => {
+        console.log('🧪 Test button clicked - forcing modal open');
+        if (businesses.length > 0) {
+          setSelectedBusiness(businesses[0]);
+          setShowModal(true);
+        } else {
+          alert('No businesses available for testing');
+        }
+      }}
+      className="bg-yellow-500 text-white px-4 py-2 rounded mr-4"
+    >
+      🧪 Force Modal Open
+    </button>
+    <div className="text-sm mt-2 text-yellow-700">
+      <p>Modal State: <strong>{showModal ? 'OPEN' : 'CLOSED'}</strong></p>
+      <p>Selected Business: <strong>{selectedBusiness?.company_name || 'None'}</strong></p>
+      <p>Total Businesses: <strong>{businesses.length}</strong></p>
+    </div>
+  </div>
+</div>
+
 
       {/* URL Analyzer Section */}
       <UrlAnalyzer 
@@ -215,14 +243,17 @@ const App = () => {
           <EmptyState />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {businesses.map((business) => (
-              <BusinessCard 
-                key={business.id} 
-                business={business}
-                onView={viewBusiness}
-                onDelete={deleteBusiness}
-              />
-            ))}
+            {businesses.map((business) => {
+                console.log('🔄 Rendering BusinessCard for:', business.company_name, 'with onView:', typeof viewBusiness);
+                return (
+                  <BusinessCard 
+                    key={business.id} 
+                    business={business}
+                    onView={viewBusiness}  // ← Make sure this line exists
+                    onDelete={deleteBusiness}
+                  />
+                );
+              })}
           </div>
         )}
 
