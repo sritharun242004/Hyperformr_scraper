@@ -98,9 +98,17 @@ const App = () => {
 
   // View business details
   const viewBusiness = (business) => {
-    console.log('Viewing business:', business); // Debug log
+    console.log('📊 App: viewBusiness called with:', business);
+    console.log('📊 App: Setting selectedBusiness and showModal to true');
+    
     setSelectedBusiness(business);
     setShowModal(true);
+    setTimeout(() => {
+      console.log('📊 App: Modal state after setState:', {
+        showModal: true, // This should be true
+        selectedBusiness: business ? business.company_name : 'null'
+      });
+    }, 100);
   };
 
   // Close modal

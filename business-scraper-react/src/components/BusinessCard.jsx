@@ -10,6 +10,46 @@ const BusinessCard = ({ business, onView, onDelete }) => {
   const description = business.description || 'No description available';
   const businessModel = business.business_model || 'Unknown';
 
+  // FIXED: Proper click handler that prevents default behavior
+  const handleViewClick = (e) => {
+    e.preventDefault(); // Prevent any default behavior
+    e.stopPropagation(); // Stop event bubbling
+    
+    console.log('👁️ Eye button clicked for:', companyName);
+    console.log('Business data:', business);
+    console.log('onView function:', typeof onView);
+    
+    if (onView && typeof onView === 'function') {
+      onView(business);
+    } else {
+      console.error('❌ onView is not a function or not provided');
+    }
+  };
+
+  const handleDeleteClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🗑️ Delete button clicked for:', companyName);
+    
+    if (onDelete && typeof onDelete === 'function') {
+      onDelete(business.id, companyName);
+    } else {
+      console.error('❌ onDelete is not a function or not provided');
+    }
+  };
+
+  const handleVisitClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🔗 Visit button clicked for:', business.url);
+    
+    if (business.url) {
+      window.open(business.url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200 animate-fadeIn">
       {/* Header */}
@@ -32,25 +72,38 @@ const BusinessCard = ({ business, onView, onDelete }) => {
             )}
           </div>
         </div>
+        
+        {/* FIXED: Action buttons with proper event handling */}
         <div className="flex gap-1 ml-4">
+          {/* Eye Button - View Details */}
           <button
-            onClick={() => onView(business)}
-            className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-            title="View Details"
+            type="button"
+            onClick={handleViewClick}
+            className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
+            title="View Business Details"
+            aria-label={`View details for ${companyName}`}
           >
             <Eye className="h-4 w-4" />
           </button>
+          
+          {/* Visit Website Button */}
           <button
-            onClick={() => window.open(business.url, '_blank')}
-            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            type="button"
+            onClick={handleVisitClick}
+            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
             title="Visit Website"
+            aria-label={`Visit ${companyName} website`}
           >
             <ExternalLink className="h-4 w-4" />
           </button>
+          
+          {/* Delete Button */}
           <button
-            onClick={() => onDelete(business.id, companyName)}
-            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title="Delete"
+            type="button"
+            onClick={handleDeleteClick}
+            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+            title="Delete Business"
+            aria-label={`Delete ${companyName}`}
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -72,6 +125,11 @@ const BusinessCard = ({ business, onView, onDelete }) => {
           <Calendar className="h-4 w-4 mr-2 text-gray-400" />
           <span>Founded {foundedYear}</span>
         </div>
+      </div>
+
+      {/* DEBUG INFO - Remove after testing */}
+      <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400">
+        <div>ID: {business.id} | onView: {typeof onView} | onDelete: {typeof onDelete}</div>
       </div>
     </div>
   );
