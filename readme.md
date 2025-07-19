@@ -1,59 +1,12 @@
-# Hyperformr Scraper
+# React + Vite
 
-**Hyperformr Scraper** is a business intelligence tool that extracts and analyzes data from company websites to build rich profiles. It scrapes key details from homepage and internal pages—enabling admins and users to derive actionable insights without the use of large language models.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
----
+Currently, two official plugins are available:
 
-## 🚀 How It Works
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-1. User submits a company or business website URL.
-2. Scraper fetches the homepage and top internal pages.
-3. Extracts key information using regex and rule-based parsing.
-4. Stores structured results in a database.
-5. Frontend dashboard displays the business intelligence insights.
+## Expanding the ESLint configuration
 
----
-
-## 🔍 Key Features
-
-- Extracts over 20 structured data points, including:
-  - ✅ Company Name
-  - 📍 Location
-  - 👥 Company Size (Employees)
-  - 💰 Revenue Estimates
-  - 📊 Net Worth (if available)
-  - 🏭 Industry Classification
-  - 🔄 Business Model (B2B, B2C, SaaS, etc.)
-  - 📆 Founding Year
-  - 👤 Leadership (CEO, CTO, Founders, etc.)
-  - 🔑 Strategic Keywords / Focus Areas
-- Deep website crawling across key internal pages.
-- Stores all findings in a structured database (SQL/NoSQL compatible).
-- Displays results via a responsive and filterable dashboard.
-- Summarizes raw HTML content (up to 2000 characters).
-- Timestamped business entries for tracking freshness.
-- Modular scraper + backend architecture for scaling and customization.
-
----
-
-## 🖥️ UI Overview
-
-- 📊 **Minimalist Dashboard**  
-  - Total Businesses Count  
-  - Recently Added Companies  
-  - Quick filters and keyword highlights
-
----
-
-## 🔐 Admin Features
-
-- Full admin access to all scraped businesses
-- Filter/search by:
-  - Date Added
-  - Industry
-  - Company Size
-  - Revenue Range
-  - Keywords
-- Scalable system design for multi-component deployments
-
----
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.

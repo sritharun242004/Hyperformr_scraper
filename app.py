@@ -1,80 +1,208 @@
-# Update this function in your database.py file
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+import os
+import logging
+from database import get_db
+from scraper import BusinessScraper
 
-def get_businesses(self, search='', sort_by='scraped_date', page=1, per_page=12, filters=None):
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Create Flask app
+app = Flask(__name__)
+
+# Enable CORS for all domains and all routes
+CORS(app, origins=["http://localhost:3000", "http://localhost:5173"])
+
+# Initialize database and scraper
+db = get_db()
+scraper = BusinessScraper()
+
+# Health check endpoint
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    return jsonify({
+        'success': True,
+        'status': 'healthy',
+        'message': 'Business Scraper API is running'
+    })
+
+# Get businesses with search, sort, and pagination
+@app.route('/api/businesses', methods=['GET'])
+def get_businesses():
+    """Get paginated list of businesses with search and filters"""
     try:
-        offset = (page - 1) * per_page
+        # Get query parameters
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 12))
+        search = request.args.get('search', '').strip()
+        sort_by = request.args.get('sort_by', 'scraped_date')
         
-        # Start with base query
-        query = self.supabase.table('businesses').select('*')
+        # Get filters
+        filters = {}
+        if request.args.get('business_type'):
+            filters['business_type'] = request.args.get('business_type')
+        if request.args.get('industry'):
+            filters['industry'] = request.args.get('industry')
+        if request.args.get('company_size'):
+            filters['company_size'] = request.args.get('company_size')
+        if request.args.get('location'):
+            filters['location'] = request.args.get('location')
         
-        # Apply filters first (search is disabled as per previous request)
-        if filters:
-            if filters.get('business_type'):
-                query = query.eq('business_type', filters['business_type'])
-            if filters.get('industry'):
-                query = query.eq('industry', filters['industry'])
-            if filters.get('company_size'):
-                query = query.eq('company_size', filters['company_size'])
-            if filters.get('location'):
-                query = query.ilike('location', f"%{filters['location']}%")
-            if filters.get('founded_year_range'):
-                start_year, end_year = filters['founded_year_range']
-                query = query.gte('founded_year', start_year).lte('founded_year', end_year)
+        logger.info(f"📊 API Request: page={page}, search='{search}', sort_by={sort_by}")
         
-        # Apply sorting - UPDATED: Default to recent first
-        if sort_by == 'scraped_date':
-            # Sort by scraped_date descending (newest first)
-            query = query.order('scraped_date', desc=True)
-        elif sort_by == 'company_name':
-            query = query.order('company_name')
-        elif sort_by == 'business_type':
-            query = query.order('business_type')
-        elif sort_by == 'industry':
-            query = query.order('industry')
-        elif sort_by == 'founded_year':
-            query = query.order('founded_year', desc=True)
+        # Get businesses from database
+        result = db.get_businesses(
+            search=search,
+            sort_by=sort_by,
+            page=page,
+            per_page=per_page,
+            filters=filters if filters else None
+        )
+        
+        if result['success']:
+            logger.info(f"✅ Retrieved {len(result['data'])} businesses")
+            return jsonify(result)
         else:
-            # Default to recent first
-            query = query.order('scraped_date', desc=True)
+            logger.error(f"❌ Database error: {result['error']}")
+            return jsonify({'success': False, 'error': result['error']}), 500
+            
+    except Exception as e:
+        logger.error(f"❌ API error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Get single business by ID
+@app.route('/api/businesses/<int:business_id>', methods=['GET'])
+def get_business(business_id):
+    """Get single business by ID"""
+    try:
+        result = db.get_business_by_id(business_id)
         
-        # Build count query for pagination
-        count_query = self.supabase.table('businesses').select('id', count='exact')
+        if result['success']:
+            return jsonify(result)
+        else:
+            return jsonify({'success': False, 'error': result['error']}), 404
+            
+    except Exception as e:
+        logger.error(f"❌ Get business error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Delete business by ID
+@app.route('/api/businesses/<int:business_id>', methods=['DELETE'])
+def delete_business(business_id):
+    """Delete business by ID"""
+    try:
+        result = db.delete_business(business_id)
         
-        # Apply same filters to count query
-        if filters:
-            if filters.get('business_type'):
-                count_query = count_query.eq('business_type', filters['business_type'])
-            if filters.get('industry'):
-                count_query = count_query.eq('industry', filters['industry'])
-            if filters.get('company_size'):
-                count_query = count_query.eq('company_size', filters['company_size'])
-            if filters.get('location'):
-                count_query = count_query.ilike('location', f"%{filters['location']}%")
-            if filters.get('founded_year_range'):
-                start_year, end_year = filters['founded_year_range']
-                count_query = count_query.gte('founded_year', start_year).lte('founded_year', end_year)
+        if result['success']:
+            logger.info(f"🗑️ Deleted business ID: {business_id}")
+            return jsonify({'success': True, 'message': 'Business deleted successfully'})
+        else:
+            return jsonify({'success': False, 'error': result['error']}), 404
+            
+    except Exception as e:
+        logger.error(f"❌ Delete business error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Scrape a business website
+@app.route('/api/scrape', methods=['POST'])
+def scrape_business():
+    """Scrape a business website"""
+    try:
+        data = request.get_json()
+        if not data or 'url' not in data:
+            return jsonify({'success': False, 'error': 'URL is required'}), 400
         
-        # Execute count query
-        total_result = count_query.execute()
-        total = total_result.count
+        url = data['url'].strip()
+        if not url:
+            return jsonify({'success': False, 'error': 'URL cannot be empty'}), 400
         
-        # Execute main query with pagination
-        result = query.range(offset, offset + per_page - 1).execute()
-        total_pages = (total + per_page - 1) // per_page
+        # Add protocol if missing
+        if not url.startswith(('http://', 'https://')):
+            url = f'https://{url}'
         
-        return {
-            "success": True,
-            "data": result.data,
-            "pagination": {
-                "current_page": page,
-                "per_page": per_page,
-                "total_items": total,
-                "total_pages": total_pages,
-                "has_next": page < total_pages,
-                "has_prev": page > 1
-            }
-        }
+        logger.info(f"🔍 Scraping URL: {url}")
+        
+        # Scrape the business
+        result = scraper.scrape_business(url)
+        
+        if result['success']:
+            logger.info(f"✅ Successfully scraped: {result['data']['company_name']}")
+            return jsonify(result)
+        else:
+            logger.error(f"❌ Scraping failed: {result['error']}")
+            return jsonify(result), 400
+            
+    except Exception as e:
+        logger.error(f"❌ Scrape API error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Get search suggestions
+@app.route('/api/search-suggestions', methods=['GET'])
+def get_search_suggestions():
+    """Get search suggestions for autocomplete"""
+    try:
+        search_term = request.args.get('q', '').strip()
+        
+        if len(search_term) < 2:
+            return jsonify({'success': True, 'suggestions': []})
+        
+        result = db.search_suggestions(search_term, limit=5)
+        return jsonify(result)
         
     except Exception as e:
-        print(f"❌ Database query error: {e}")
-        return {"success": False, "error": str(e)}
+        logger.error(f"❌ Search suggestions error: {e}")
+        return jsonify({'success': False, 'suggestions': []}), 500
+
+# Get application statistics
+@app.route('/api/stats', methods=['GET'])
+def get_stats():
+    """Get application statistics"""
+    try:
+        result = db.get_stats()
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"❌ Stats error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Error handlers
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 errors"""
+    return jsonify({'success': False, 'error': 'API endpoint not found'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Handle 500 errors"""
+    logger.error(f"❌ Internal server error: {error}")
+    return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+    """Handle 405 errors"""
+    return jsonify({'success': False, 'error': 'Method not allowed'}), 405
+
+# Add CORS headers to all responses
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
+if __name__ == '__main__':
+    print("🚀 Starting Business Scraper API...")
+    print("🌐 API: http://localhost:5003")
+    print("📋 Health: http://localhost:5003/api/health")
+    print("🔗 Endpoints: /api/businesses, /api/scrape, /api/stats")
+    
+    # Run the Flask app
+    app.run(
+        host='0.0.0.0',
+        port=5003,
+        debug=True,
+        threaded=True
+    )
