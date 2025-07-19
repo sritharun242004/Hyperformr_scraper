@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Loader, Globe, CheckCircle, AlertCircle } from 'lucide-react';
 
@@ -77,22 +76,22 @@ const UrlAnalyzer = ({ onAnalyze, onStatusMessage }) => {
   return (
     <section className="bg-gradient-to-br from-green-50 to-blue-50 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+        {/* UPDATED: New title structure */}
         <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-                <div className="p-3 bg-green-100 rounded-full">
-                <Globe className="h-8 w-8 text-green-600" />
-                </div>
+          <div className="flex justify-center mb-4">
+            <div className="p-3 bg-green-100 rounded-full">
+              <Globe className="h-8 w-8 text-green-600" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                Hyperformr.scraper
-            </h2>
-            <p className="text-lg text-gray-600 mb-4">
-                Business Intelligence Scraper
-            </p>
-            <p className="text-base text-gray-500">
-                Enter any business website URL to extract comprehensive company information
-            </p>
+          </div>
+          <h2 className="text-4xl font-bold text-gray-900 mb-2">
+            Hyperformr.scraper
+          </h2>
+          <h3 className="text-xl font-semibold text-green-600 mb-4">
+            Business Intelligence Scraper
+          </h3>
+          <p className="text-lg text-gray-600">
+            Enter any business website URL to extract comprehensive company information
+          </p>
         </div>
 
         {/* URL Input Card */}
