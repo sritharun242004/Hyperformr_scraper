@@ -17,7 +17,7 @@ import {
   TrendingUp,
   Star,
   Shield,
-  Handshake,
+  Users2,
   MessageSquare,
   Copy,
   CheckCircle
