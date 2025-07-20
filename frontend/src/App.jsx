@@ -169,7 +169,7 @@ function App() {
               <div className="flex items-center space-x-3">
                 <div 
                   className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"
-                  style={{ background: 'linear-gradient(to right, #16a34a, #059669)' }}
+                  style={{ background: 'linear-gradient(to right, #84cc16, #65a30d)' }}
                 >
                   <span className="text-white font-bold text-xl">H</span>
                 </div>
@@ -177,7 +177,7 @@ function App() {
                   <h1 
                     className="text-xl font-bold"
                     style={{ 
-                      background: 'linear-gradient(to right, #16a34a, #059669)',
+                      background: 'linear-gradient(to right, #84cc16, #65a30d)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text'

@@ -66,7 +66,7 @@ function SearchForm({ onSubmit, loading }) {
             type="text"
             value={url}
             onChange={handleInputChange}
-            placeholder="Enter business website URL (e.g., google.com, microsoft.com)"
+            placeholder="Enter business website URL"
             className="input-primary pl-12 pr-32 py-4 text-lg"
             disabled={loading}
           />
@@ -76,7 +76,7 @@ function SearchForm({ onSubmit, loading }) {
             disabled={loading || !url.trim()}
             className="absolute right-2 top-2 bottom-2 px-6 btn-primary rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center space-x-2"
             style={{
-              background: loading || !url.trim() ? '#9ca3af' : 'linear-gradient(to right, #16a34a, #059669)',
+              background: loading || !url.trim() ? '#9ca3af' : 'linear-gradient(to right, #84cc16, #65a30d)',
               color: 'white',
               border: 'none'
             }}
@@ -84,12 +84,12 @@ function SearchForm({ onSubmit, loading }) {
             {loading ? (
               <>
                 <div className="spinner"></div>
-                <span>Scraping...</span>
+                <span>Analyzing...</span>
               </>
             ) : (
               <>
                 <Search className="h-4 w-4" />
-                <span>Scrape</span>
+                <span>Extract Intelligence</span>
               </>
             )}
           </button>
@@ -101,7 +101,7 @@ function SearchForm({ onSubmit, loading }) {
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3 animate-scale-in">
           <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="text-red-800 font-medium">Scraping Failed</h4>
+            <h4 className="text-red-800 font-medium">Analysis Failed</h4>
             <p className="text-red-700 text-sm mt-1">{error}</p>
           </div>
         </div>
@@ -112,7 +112,7 @@ function SearchForm({ onSubmit, loading }) {
         <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl flex items-start space-x-3 animate-scale-in">
           <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="text-green-800 font-medium">Success!</h4>
+            <h4 className="text-green-800 font-medium">Intelligence Extracted!</h4>
             <p className="text-green-700 text-sm mt-1">{success}</p>
           </div>
         </div>
@@ -120,7 +120,7 @@ function SearchForm({ onSubmit, loading }) {
 
       {/* Example URLs */}
       <div className="text-center">
-        <p className="text-gray-600 mb-3">Try these example websites:</p>
+        <p className="text-gray-600 mb-3">Try these example companies:</p>
         <div className="flex flex-wrap justify-center gap-2">
           {exampleUrls.map((exampleUrl) => (
             <button
@@ -133,17 +133,6 @@ function SearchForm({ onSubmit, loading }) {
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Tips */}
-      <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-xl">
-        <h4 className="text-green-800 font-medium mb-2">💡 Tips for Best Results</h4>
-        <ul className="text-green-700 text-sm space-y-1">
-          <li>• Use the main company website (not subdomain pages)</li>
-          <li>• Try both with and without "www" if one doesn't work</li>
-          <li>• Make sure the website is publicly accessible</li>
-          <li>• Corporate websites usually provide the most comprehensive data</li>
-        </ul>
       </div>
     </div>
   )
