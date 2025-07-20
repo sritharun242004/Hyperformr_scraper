@@ -3,6 +3,7 @@ import HomePage from './pages/HomePage'
 import BusinessListPage from './pages/BusinessListPage'
 import BusinessDetail from './components/BusinessDetail'
 import { Database, ArrowLeft } from 'lucide-react'
+import config from './config.js'
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home')
@@ -22,7 +23,7 @@ function App() {
         sort_by: params.sort_by || 'scraped_date'
       })
 
-      const response = await fetch(`http://localhost:5003/api/businesses?${queryParams}`)
+      const response = await fetch(`${config.API_BASE_URL}/api/businesses?${queryParams}`)
       const data = await response.json()
       
       if (data.success) {
@@ -43,7 +44,7 @@ function App() {
   // Fetch stats
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:5003/api/stats')
+      const response = await fetch(`${config.API_BASE_URL}/api/stats`)
       const data = await response.json()
       if (data.success) {
         setStats(data.data)
@@ -57,7 +58,7 @@ function App() {
   const scrapeBusiness = async (url) => {
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:5003/api/scrape', {
+      const response = await fetch(`${config.API_BASE_URL}/api/scrape`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -88,7 +89,7 @@ function App() {
   // Delete business
   const deleteBusiness = async (businessId) => {
     try {
-      const response = await fetch(`http://localhost:5003/api/businesses/${businessId}`, {
+      const response = await fetch(`${config.API_BASE_URL}/api/businesses/${businessId}`, {
         method: 'DELETE'
       })
       
