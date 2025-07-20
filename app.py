@@ -10,7 +10,13 @@ logger = logging.getLogger(__name__)
 
 # Create Flask app
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:3000", "http://localhost:5173"])
+
+CORS(app, origins=[
+    "http://localhost:3000", 
+    "http://localhost:5173",
+    "https://hyperformr-scraper.vercel.app",  # Your upcoming Vercel URL
+    "https://*.vercel.app"  # Allow any Vercel subdomain for safety
+])
 
 # Initialize database and scraper
 db = get_db()
