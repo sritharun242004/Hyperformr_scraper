@@ -1,50 +1,38 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Search, X } from 'lucide-react';
 
 const SearchBar = ({ onSearch, placeholder = "Search companies, industries, locations..." }) => {
   const [searchValue, setSearchValue] = useState('');
 
-  // Debounce function to avoid too many API calls
-  const debounce = useCallback((func, delay) => {
-    let timeoutId;
-    return (...args) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func.apply(null, args), delay);
-    };
-  }, []);
-
-  // Debounced search function
-  const debouncedSearch = useCallback(
-    debounce((searchTerm) => {
-      onSearch(searchTerm);
-    }, 300),
-    [onSearch]
-  );
-
-  // Handle input change
   const handleInputChange = (e) => {
     const value = e.target.value;
     setSearchValue(value);
-    debouncedSearch(value);
+    
+    // Call onSearch with delay
+    setTimeout(() => {
+      onSearch(value);
+    }, 300);
   };
 
-  // Clear search
   const clearSearch = () => {
     setSearchValue('');
     onSearch('');
   };
 
-  // Handle keyboard shortcuts
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') {
       clearSearch();
     }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onSearch(searchValue);
+    }
   };
 
   return (
-    <div className="relative flex-1 min-w-0">
+    <div className="relative flex-1">
       {/* Search Icon */}
-      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
         <Search className="h-4 w-4 text-gray-400" />
       </div>
 
@@ -55,16 +43,16 @@ const SearchBar = ({ onSearch, placeholder = "Search companies, industries, loca
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-colors"
+        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
       />
 
       {/* Clear Button */}
       {searchValue && (
-        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
           <button
             onClick={clearSearch}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-            title="Clear search"
+            className="text-gray-400 hover:text-gray-600"
+            type="button"
           >
             <X className="h-4 w-4" />
           </button>

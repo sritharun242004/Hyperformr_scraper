@@ -1,63 +1,147 @@
-import os
 from datetime import datetime
 import logging
 
-# Configure logging
+# Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class Database:
     def __init__(self):
-        """Initialize simple in-memory database for testing"""
+        """Simple database for demo"""
         self.businesses = []
         self.next_id = 1
-        logger.info("✅ Test database initialized (in-memory)")
-        
-        # Add some sample data for testing
+        print("✅ Database initialized")
         self._add_sample_data()
     
     def _add_sample_data(self):
-        """Add sample businesses for testing"""
+        """Add sample businesses"""
         sample_businesses = [
             {
                 'id': 1,
                 'url': 'https://google.com',
-                'company_name': 'Google',
+                'company_name': 'Google LLC',
                 'business_type': 'Technology',
                 'industry': 'Internet Services',
                 'location': 'Mountain View, CA',
                 'founded_year': '1998',
-                'description': 'Search engine and technology company',
+                'description': 'Search engine and technology company providing internet-related services and products',
                 'business_model': 'Advertising',
                 'company_size': 'Enterprise (1000+ employees)',
                 'estimated_revenue': '$280B',
+                'employee_count': '139,995',
+                'target_market': 'Global Consumer and Enterprise',
+                'key_services': 'Search, Advertising, Cloud Computing, Mobile OS',
+                'technologies': 'AI, Machine Learning, Cloud Infrastructure',
+                'competitive_advantages': 'Dominant search market share, massive data collection',
+                'key_executives': 'Sundar Pichai (CEO), Ruth Porat (CFO)',
+                'awards_recognition': 'Fortune 500, Best Places to Work',
+                'recent_news': 'Continued AI development and cloud expansion',
+                'product_categories': 'Search, Ads, Cloud, Hardware',
+                'client_testimonials': 'Excellent search experience and reliable services',
+                'partnerships': 'Apple, Samsung, Mozilla',
+                'certifications': 'ISO 27001, SOC 2',
+                'market_focus': 'Global Technology Leadership',
+                'business_maturity': 'Mature Enterprise',
+                'contact_info': 'contact@google.com, 1-650-253-0000',
+                'social_media': 'Twitter: @Google, LinkedIn: Google',
+                'content': 'Google comprehensive technology services',
+                'summary': 'Google is a multinational technology company specializing in internet-related services.',
                 'scraped_date': datetime.now().isoformat(),
                 'last_updated': datetime.now().isoformat()
             },
             {
                 'id': 2,
                 'url': 'https://microsoft.com',
-                'company_name': 'Microsoft',
+                'company_name': 'Microsoft Corporation',
                 'business_type': 'Technology',
                 'industry': 'Software',
                 'location': 'Redmond, WA',
                 'founded_year': '1975',
-                'description': 'Software and cloud computing company',
+                'description': 'Software and cloud computing company providing enterprise and consumer solutions',
                 'business_model': 'SaaS',
                 'company_size': 'Enterprise (1000+ employees)',
                 'estimated_revenue': '$200B',
+                'employee_count': '221,000',
+                'target_market': 'Enterprise and Consumer',
+                'key_services': 'Cloud Computing, Software, Gaming, Hardware',
+                'technologies': 'Azure, AI, Machine Learning, Quantum Computing',
+                'competitive_advantages': 'Enterprise dominance, strong cloud platform',
+                'key_executives': 'Satya Nadella (CEO), Amy Hood (CFO)',
+                'awards_recognition': 'Fortune 500, Most Valuable Brand',
+                'recent_news': 'AI integration across products, Teams growth',
+                'product_categories': 'Operating Systems, Office Suite, Cloud, Gaming',
+                'client_testimonials': 'Reliable enterprise solutions and support',
+                'partnerships': 'OpenAI, Intel, AMD',
+                'certifications': 'ISO 27001, FedRAMP, HIPAA',
+                'market_focus': 'Enterprise Cloud Leadership',
+                'business_maturity': 'Mature Enterprise',
+                'contact_info': 'support@microsoft.com, 1-425-882-8080',
+                'social_media': 'Twitter: @Microsoft, LinkedIn: Microsoft',
+                'content': 'Microsoft enterprise and consumer software solutions',
+                'summary': 'Microsoft is leading technology corporation known for Windows, Office, and Azure.',
+                'scraped_date': datetime.now().isoformat(),
+                'last_updated': datetime.now().isoformat()
+            },
+            {
+                'id': 3,
+                'url': 'https://apple.com',
+                'company_name': 'Apple Inc.',
+                'business_type': 'Technology',
+                'industry': 'Consumer Electronics',
+                'location': 'Cupertino, CA',
+                'founded_year': '1976',
+                'description': 'Consumer electronics company designing smartphones, computers, and digital services',
+                'business_model': 'Hardware and Services',
+                'company_size': 'Enterprise (1000+ employees)',
+                'estimated_revenue': '$394B',
+                'employee_count': '164,000',
+                'target_market': 'Premium Consumer Market',
+                'key_services': 'iPhone, Mac, iPad, Apple Services',
+                'technologies': 'iOS, macOS, Apple Silicon, AR/VR',
+                'competitive_advantages': 'Premium brand, ecosystem integration',
+                'key_executives': 'Tim Cook (CEO), Luca Maestri (CFO)',
+                'awards_recognition': 'Most Valuable Company, Design Awards',
+                'recent_news': 'Vision Pro launch, Apple Intelligence AI',
+                'product_categories': 'Smartphones, Computers, Tablets, Wearables',
+                'client_testimonials': 'Exceptional build quality and user experience',
+                'partnerships': 'Intel, TSMC, Samsung',
+                'certifications': 'ISO 14001, Carbon Neutral',
+                'market_focus': 'Premium Consumer Electronics',
+                'business_maturity': 'Mature Enterprise',
+                'contact_info': 'support@apple.com, 1-800-275-2273',
+                'social_media': 'Twitter: @Apple, LinkedIn: Apple',
+                'content': 'Apple innovative consumer electronics',
+                'summary': 'Apple is a premium consumer electronics company known for iPhone and Mac.',
                 'scraped_date': datetime.now().isoformat(),
                 'last_updated': datetime.now().isoformat()
             }
         ]
         
         self.businesses = sample_businesses
-        self.next_id = 3
+        self.next_id = 4
+
+    def _simple_search(self, search_term, business):
+        """Simple search function"""
+        if not search_term:
+            return True
+        
+        search_term = search_term.lower()
+        
+        # Search in these fields
+        searchable_text = (
+            str(business.get('company_name', '')).lower() + ' ' +
+            str(business.get('business_type', '')).lower() + ' ' +
+            str(business.get('industry', '')).lower() + ' ' +
+            str(business.get('location', '')).lower() + ' ' +
+            str(business.get('description', '')).lower()
+        )
+        
+        # Check if search term is in any of the text
+        return search_term in searchable_text
 
     def insert_business(self, business_data):
-        """Insert a new business record"""
+        """Add new business"""
         try:
-            # Create new business with ID
             new_business = {
                 'id': self.next_id,
                 'url': business_data.get('url'),
@@ -66,70 +150,58 @@ class Database:
                 'industry': business_data.get('industry', 'Unknown'),
                 'location': business_data.get('location', 'Unknown'),
                 'founded_year': business_data.get('founded_year', 'Unknown'),
-                'description': business_data.get('description', 'No description available'),
+                'description': business_data.get('description', 'No description'),
                 'business_model': business_data.get('business_model', 'Unknown'),
                 'company_size': business_data.get('company_size', 'Unknown'),
                 'estimated_revenue': business_data.get('estimated_revenue', 'Not disclosed'),
                 'employee_count': business_data.get('employee_count', 'Not specified'),
                 'target_market': business_data.get('target_market', 'General Market'),
-                'key_services': business_data.get('key_services', 'Services not specified'),
-                'contact_info': business_data.get('contact_info', 'Contact info not found'),
-                'social_media': business_data.get('social_media', 'No social media found'),
+                'key_services': business_data.get('key_services', 'Not specified'),
+                'contact_info': business_data.get('contact_info', 'Not found'),
+                'social_media': business_data.get('social_media', 'Not found'),
                 'technologies': business_data.get('technologies', 'Not specified'),
                 'competitive_advantages': business_data.get('competitive_advantages', 'Not specified'),
-                'key_executives': business_data.get('key_executives', 'Leadership info not found'),
-                'awards_recognition': business_data.get('awards_recognition', 'No awards mentioned'),
-                'recent_news': business_data.get('recent_news', 'No recent updates found'),
-                'product_categories': business_data.get('product_categories', 'Product categories not specified'),
-                'client_testimonials': business_data.get('client_testimonials', 'No testimonials found'),
-                'partnerships': business_data.get('partnerships', 'No partnerships mentioned'),
-                'certifications': business_data.get('certifications', 'No certifications mentioned'),
+                'key_executives': business_data.get('key_executives', 'Not found'),
+                'awards_recognition': business_data.get('awards_recognition', 'None'),
+                'recent_news': business_data.get('recent_news', 'None'),
+                'product_categories': business_data.get('product_categories', 'Not specified'),
+                'client_testimonials': business_data.get('client_testimonials', 'None'),
+                'partnerships': business_data.get('partnerships', 'None'),
+                'certifications': business_data.get('certifications', 'None'),
                 'market_focus': business_data.get('market_focus', 'Unknown'),
                 'business_maturity': business_data.get('business_maturity', 'Unknown'),
-                'content': business_data.get('content', 'No content extracted'),
-                'summary': business_data.get('summary', 'Business summary not available'),
+                'content': business_data.get('content', 'No content'),
+                'summary': business_data.get('summary', 'No summary'),
                 'scraped_date': datetime.now().isoformat(),
                 'last_updated': datetime.now().isoformat()
             }
             
-            # Add to businesses list
             self.businesses.append(new_business)
             self.next_id += 1
             
-            logger.info(f"✅ Business inserted: {new_business['company_name']}")
+            print(f"✅ Added business: {new_business['company_name']}")
             return {"success": True, "data": new_business}
                 
         except Exception as e:
-            logger.error(f"❌ Insert error: {e}")
+            print(f"❌ Error adding business: {e}")
             return {"success": False, "error": str(e)}
 
-    def get_businesses(self, search='', sort_by='scraped_date', page=1, per_page=12, filters=None):
-        """Get businesses with search, sort, and pagination"""
+    def get_businesses(self, search='', sort_by='scraped_date', page=1, per_page=12):
+        """Get businesses with search and pagination"""
         try:
-            # Filter businesses based on search
+            # Start with all businesses
             filtered_businesses = self.businesses.copy()
             
+            print(f"📊 Total businesses: {len(filtered_businesses)}")
+            
+            # Apply search
             if search and search.strip():
-                search_term = search.strip().lower()
+                search_term = search.strip()
                 filtered_businesses = [
                     b for b in filtered_businesses 
-                    if (search_term in b.get('company_name', '').lower() or
-                        search_term in b.get('business_type', '').lower() or
-                        search_term in b.get('industry', '').lower() or
-                        search_term in b.get('location', '').lower() or
-                        search_term in b.get('description', '').lower())
+                    if self._simple_search(search_term, b)
                 ]
-                logger.info(f"🔍 Searching for: '{search_term}', found {len(filtered_businesses)} results")
-            
-            # Apply filters
-            if filters:
-                if filters.get('business_type'):
-                    filtered_businesses = [b for b in filtered_businesses if b.get('business_type') == filters['business_type']]
-                if filters.get('industry'):
-                    filtered_businesses = [b for b in filtered_businesses if b.get('industry') == filters['industry']]
-                if filters.get('location'):
-                    location_filter = filters['location'].lower()
-                    filtered_businesses = [b for b in filtered_businesses if location_filter in b.get('location', '').lower()]
+                print(f"🔍 Search '{search_term}' found {len(filtered_businesses)} results")
             
             # Sort businesses
             if sort_by == 'company_name':
@@ -150,7 +222,7 @@ class Database:
             end_idx = start_idx + per_page
             page_businesses = filtered_businesses[start_idx:end_idx]
             
-            logger.info(f"✅ Found {total} businesses, showing page {page}")
+            print(f"✅ Returning {len(page_businesses)} businesses on page {page}")
             
             return {
                 "success": True,
@@ -166,7 +238,7 @@ class Database:
             }
             
         except Exception as e:
-            logger.error(f"❌ Database query error: {e}")
+            print(f"❌ Database error: {e}")
             return {
                 "success": False, 
                 "error": str(e), 
@@ -181,121 +253,27 @@ class Database:
                 }
             }
 
-    def get_business_by_id(self, business_id):
-        """Get a single business by ID"""
-        try:
-            business = next((b for b in self.businesses if b['id'] == business_id), None)
-            
-            if business:
-                # Format dates
-                business['last_updated_formatted'] = self._format_date(business.get('last_updated'))
-                business['scraped_date_formatted'] = self._format_date(business.get('scraped_date'))
-                
-                return {"success": True, "data": business}
-            else:
-                return {"success": False, "error": "Business not found"}
-                
-        except Exception as e:
-            logger.error(f"❌ Get business by ID error: {e}")
-            return {"success": False, "error": str(e)}
-
     def delete_business(self, business_id):
-        """Delete a business by ID"""
+        """Delete business by ID"""
         try:
-            # Find and remove business
             original_count = len(self.businesses)
             self.businesses = [b for b in self.businesses if b['id'] != business_id]
             
             if len(self.businesses) < original_count:
-                logger.info(f"✅ Deleted business ID: {business_id}")
-                return {"success": True, "message": "Business deleted successfully"}
+                print(f"✅ Deleted business ID: {business_id}")
+                return {"success": True, "message": "Business deleted"}
             else:
                 return {"success": False, "error": "Business not found"}
             
         except Exception as e:
-            logger.error(f"❌ Delete business error: {e}")
+            print(f"❌ Delete error: {e}")
             return {"success": False, "error": str(e)}
 
-    def search_suggestions(self, search_term, limit=5):
-        """Get search suggestions based on partial input"""
-        try:
-            if not search_term or len(search_term) < 2:
-                return {"success": True, "suggestions": []}
-            
-            search_lower = search_term.lower()
-            suggestions = []
-            seen = set()
-            
-            for business in self.businesses:
-                company_name = business.get('company_name', '')
-                if (company_name and 
-                    search_lower in company_name.lower() and 
-                    company_name not in seen):
-                    suggestions.append(company_name)
-                    seen.add(company_name)
-                    if len(suggestions) >= limit:
-                        break
-            
-            return {"success": True, "suggestions": suggestions}
-            
-        except Exception as e:
-            logger.error(f"❌ Search suggestions error: {e}")
-            return {"success": False, "suggestions": []}
-
-    def get_stats(self):
-        """Get application statistics"""
-        try:
-            total_businesses = len(self.businesses)
-            
-            # Count by business type
-            business_types = {}
-            industries = {}
-            
-            for business in self.businesses:
-                # Business types
-                btype = business.get('business_type', 'Unknown')
-                business_types[btype] = business_types.get(btype, 0) + 1
-                
-                # Industries
-                industry = business.get('industry', 'Unknown')
-                industries[industry] = industries.get(industry, 0) + 1
-            
-            # Recent businesses (for demo, just count all)
-            recent_count = total_businesses
-            
-            return {
-                "success": True,
-                "stats": {
-                    "total_businesses": total_businesses,
-                    "recent_businesses": recent_count,
-                    "business_types": business_types,
-                    "industries": industries,
-                    "top_business_type": max(business_types.items(), key=lambda x: x[1])[0] if business_types else "Unknown",
-                    "top_industry": max(industries.items(), key=lambda x: x[1])[0] if industries else "Unknown"
-                }
-            }
-            
-        except Exception as e:
-            logger.error(f"❌ Get stats error: {e}")
-            return {"success": False, "error": str(e)}
-
-    def _format_date(self, date_string):
-        """Format date string for display"""
-        if not date_string:
-            return 'Unknown'
-        
-        try:
-            from datetime import datetime
-            date_obj = datetime.fromisoformat(date_string.replace('Z', '+00:00'))
-            return date_obj.strftime('%B %d, %Y at %I:%M %p')
-        except:
-            return date_string
-
-# Singleton instance
+# Single database instance
 _db_instance = None
 
 def get_db():
-    """Get database instance (singleton pattern)"""
+    """Get database instance"""
     global _db_instance
     if _db_instance is None:
         _db_instance = Database()

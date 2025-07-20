@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Hyperformr.scraper - Transform any business website into comprehensive insights" />
+    <meta name="keywords" content="business intelligence, web scraping, company data, market analysis, hyperformr" />
+    <meta name="author" content="Hyperformr.scraper" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Hyperformr.scraper - Business Intelligence Made Simple" />
+    <meta property="og:description" content="Extract company data, analyze market position, and build your business intelligence database in seconds." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og-image.png" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Hyperformr.scraper - Business Intelligence Made Simple" />
+    <meta name="twitter:description" content="Extract company data, analyze market position, and build your business intelligence database in seconds." />
+    
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+            },
+            colors: {
+              green: {
+                50: '#f0fdf4',
+                100: '#dcfce7',
+                200: '#bbf7d0',
+                300: '#86efac',
+                400: '#4ade80',
+                500: '#22c55e',
+                600: '#16a34a',
+                700: '#15803d',
+                800: '#166534',
+                900: '#14532d',
+              },
+              emerald: {
+                50: '#ecfdf5',
+                100: '#d1fae5',
+                200: '#a7f3d0',
+                300: '#6ee7b7',
+                400: '#34d399',
+                500: '#10b981',
+                600: '#059669',
+                700: '#047857',
+                800: '#065f46',
+                900: '#064e3b',
+              }
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-out',
+              'slide-in': 'slideIn 0.3s ease-out',
+              'scale-in': 'scaleIn 0.2s ease-out',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              slideIn: {
+                '0%': { opacity: '0', transform: 'translateX(-20px)' },
+                '100%': { opacity: '1', transform: 'translateX(0)' },
+              },
+              scaleIn: {
+                '0%': { opacity: '0', transform: 'scale(0.95)' },
+                '100%': { opacity: '1', transform: 'scale(1)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    
+    <title>Hyperformr.scraper - Business Intelligence Made Simple</title>
+    
+    <style>
+      /* Custom styles */
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+      }
+      
+      /* Line clamping */
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      
+      .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
+      /* Custom button styles */
+      .btn-primary {
+        background: linear-gradient(to right, #16a34a, #059669);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        font-weight: 500;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+      }
+      
+      .btn-primary:hover {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        transform: scale(1.05);
+      }
+      
+      .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-secondary {
+        background: white;
+        color: #374151;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        border: 1px solid #d1d5db;
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+      
+      .btn-secondary:hover {
+        background: #f0fdf4;
+        border-color: #16a34a;
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        border: none;
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+      
+      .btn-danger:hover {
+        background: #dc2626;
+      }
+
+      /* Card styles */
+      .card {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid #f3f4f6;
+        padding: 1.5rem;
+        transition: all 0.3s;
+      }
+      
+      .card:hover {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-hover {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid #f3f4f6;
+        transition: all 0.3s;
+        cursor: pointer;
+      }
+      
+      .card-hover:hover {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        transform: scale(1.02);
+      }
+
+      /* Input styles */
+      .input-primary {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.75rem;
+        background: white;
+        transition: all 0.2s;
+      }
+      
+      .input-primary:focus {
+        outline: none;
+        border-color: #16a34a;
+        box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+      }
+
+      /* Badge styles */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+
+      .badge-green {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      .badge-emerald {
+        background: #d1fae5;
+        color: #065f46;
+      }
+
+      .badge-blue {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      .badge-purple {
+        background: #d1fae5;
+        color: #065f46;
+      }
+
+      .badge-yellow {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .badge-red {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .badge-gray {
+        background: #f3f4f6;
+        color: #374151;
+      }
+
+      .badge-indigo {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      /* Gradient text */
+      .gradient-text {
+        background: linear-gradient(to right, #16a34a, #059669);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .text-gradient {
+        background: linear-gradient(to right, #16a34a, #059669, #15803d);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      /* Animation classes */
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-out;
+      }
+
+      .animate-slide-in {
+        animation: slideIn 0.3s ease-out;
+      }
+
+      .animate-scale-in {
+        animation: scaleIn 0.2s ease-out;
+      }
+
+      .hover-lift:hover {
+        transform: scale(1.02);
+      }
+
+      /* Loading spinner */
+      .spinner {
+        width: 2rem;
+        height: 2rem;
+        border: 2px solid #f3f4f6;
+        border-top: 2px solid #16a34a;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body class="bg-gradient-to-br from-green-50 via-white to-emerald-50">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
