@@ -88,7 +88,6 @@ def scrape_business():
         if not url:
             return jsonify({'success': False, 'error': 'URL cannot be empty'}), 400
         
-        # Add https if missing
         if not url.startswith(('http://', 'https://')):
             url = f'https://{url}'
         
