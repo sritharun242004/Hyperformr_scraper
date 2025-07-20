@@ -7,9 +7,9 @@
 ## 📸 Screenshots
 
 > Replace these paths with real screenshots  
-![Homepage](./frontend/public/sc1.png)  
-![Search Result](./frontend/public/sc2.png)  
-![Business Detail](./frontend/public/sc3.png)
+![Homepage](./frontend/public/homepage.png)  
+![Search Result](./frontend/public/businesscards.png)  
+![Business Detail](./frontend/public/viewdetails.png)
 
 ---
 
