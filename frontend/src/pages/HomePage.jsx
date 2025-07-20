@@ -34,7 +34,7 @@ function HomePage({ onScrapeBusiness, onViewBusinesses, loading, stats }) {
             }}
             >
             Hyperformr.scraper
-            </h1>
+          </h1>
 
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Transform any business website into comprehensive insights with Hyperformr.scraper. 
@@ -139,15 +139,19 @@ function HomePage({ onScrapeBusiness, onViewBusinesses, loading, stats }) {
             </div>
             
             <div className="mt-6 flex justify-center gap-4">
-              <button onClick={onViewBusinesses} className="btn-primary">
-                Launch Intelligence Dashboard
-              </button>
-              <button
-                onClick={() => setRecentScrape(null)}
-                className="btn-secondary"
-              >
-                Analyze Another Company
-              </button>
+                <button
+                    onClick={onViewBusinesses}
+                    className="px-6 py-3 rounded-xl text-white font-semibold shadow-md hover:opacity-90 transition"
+                    style={{ background: 'linear-gradient(to right, #84cc16, #65a30d)' }}
+                >
+                    Launch Intelligence Dashboard
+                </button>
+                <button
+                    onClick={() => setRecentScrape(null)}
+                    className="px-6 py-3 rounded-xl bg-gray-300 text-gray-800 font-semibold shadow-md hover:bg-gray-400 transition"
+                >
+                    Analyze Another Company
+                </button>
             </div>
           </div>
         </div>
@@ -200,57 +204,8 @@ function HomePage({ onScrapeBusiness, onViewBusinesses, loading, stats }) {
               and competitive intelligence for strategic decision-making.
             </p>
           </div>
-
-          <div className="card hover-lift" style={{ borderColor: '#fef3c7' }}>
-            <div 
-              className="flex items-center justify-center w-12 h-12 rounded-xl mb-4"
-              style={{ background: '#fef3c7' }}
-            >
-              <TrendingUp className="h-6 w-6" style={{ color: '#d97706' }} />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Market Intelligence</h3>
-            <p className="text-gray-600">
-              Analyze business models, target markets, and competitive positioning 
-              to understand market dynamics and opportunities.
-            </p>
-          </div>
-
-          <div className="card hover-lift" style={{ borderColor: '#ecfccb' }}>
-            <div 
-              className="flex items-center justify-center w-12 h-12 rounded-xl mb-4"
-              style={{ background: '#ecfccb' }}
-            >
-              <Zap className="h-6 w-6" style={{ color: '#65a30d' }} />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Real-Time Intelligence</h3>
-            <p className="text-gray-600">
-              Access up-to-date business information with real-time data extraction and 
-              automated intelligence refresh capabilities.
-            </p>
-          </div>
-
-          <div className="card hover-lift" style={{ borderColor: '#d9f99d' }}>
-            <div 
-              className="flex items-center justify-center w-12 h-12 rounded-xl mb-4"
-              style={{ background: '#d9f99d' }}
-            >
-              <span 
-                className="text-2xl font-bold"
-                style={{ color: '#84cc16' }}
-              >
-                H
-              </span>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Global Intelligence Network</h3>
-            <p className="text-gray-600">
-              Build comprehensive international business intelligence across markets and 
-              create a global competitive intelligence database.
-            </p>
-          </div>
         </div>
       </div>
-
-      
     </div>
   )
 }
